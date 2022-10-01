@@ -24,6 +24,13 @@
 #ifndef _LLOGGER_H_
 #define _LLOGGER_H_
 
+#include <iostream>
+#include <fstream>
+#include <array>
+#include <map>
+#include <vector>
+#include <mutex>
+
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(_WIN64) || defined(__NT__)
 #define IS_WINDOWS
 
@@ -66,21 +73,56 @@
 
 #define ConsoleHandle GetStdHandle(STD_OUTPUT_HANDLE)
 
+typedef std::map<uint8_t, int> LogLevelColorMap;
+
 #elif defined(__APPLE__) || defined(__linux__) || defined(__unix__)
 #define IS_UNIX
 
+#include <stdarg.h>
 
+#define FOREGROUND_GRAY				"\033[0;30m"
+#define FOREGROUND_RED				"\033[0;31m"
+#define FOREGROUND_GREEN			"\033[0;32m"
+#define FOREGROUND_YELLOW       	"\033[0;33m"
+#define FOREGROUND_BLUE				"\033[0;34m"
+#define FOREGROUND_MAGENTA	        "\033[0;35m"
+#define FOREGROUND_CYAN		        "\033[0;36m"
+#define FOREGROUND_WHITE			"\033[0;37m"
+
+#define FOREGROUND_INTENSE_GRAY		"\033[0;90m"
+#define FOREGROUND_INTENSE_RED		"\033[0;91m"
+#define FOREGROUND_INTENSE_GREEN	"\033[0;92m"
+#define FOREGROUND_INTENSE_YELLOW	"\033[0;93m"
+#define FOREGROUND_INTENSE_BLUE		"\033[0;94m"
+#define FOREGROUND_INTENSE_MAGENTA	"\033[0;95m"
+#define FOREGROUND_INTENSE_CYAN		"\033[0;96m"
+#define FOREGROUND_INTENSE_WHITE	"\033[0;97m"
+
+#define BACKGROUND_BLACK			"\033[40m"
+#define BACKGROUND_RED				"\033[41m"
+#define BACKGROUND_GREEN			"\033[42m"
+#define BACKGROUND_YELLOW	        "\033[43m"
+#define BACKGROUND_BLUE				"\033[44m"
+#define BACKGROUND_MAGENTA	        "\033[45m"
+#define BACKGROUND_CYAN		        "\033[46m"
+#define BACKGROUND_WHITE			"\033[47m"
+
+#define BACKGROUND_INTENSE_BLACK	"\033[100m"
+#define BACKGROUND_INTENSE_RED		"\033[101m"
+#define BACKGROUND_INTENSE_GREEN	"\033[102m"
+#define BACKGROUND_INTENSE_YELLOW	"\033[103m"
+#define BACKGROUND_INTENSE_BLUE		"\033[104m"
+#define BACKGROUND_INTENSE_MAGENTA	"\033[105m"
+#define BACKGROUND_INTENSE_CYAN		"\033[106m"
+#define BACKGROUND_INTENSE_WHITE	"\033[107m"
+
+#define COLOR_RESET					"\033[0m"
+
+typedef std::map<uint8_t, std::pair<std::string, std::string>> LogLevelColorMap;	//Level, <bgColor, fgColor>
 
 #endif
 
-#include <iostream>
-#include <fstream>
-#include <array>
-#include <map>
-#include <vector>
-#include <mutex>
-
-constexpr size_t LLOGGER_DEFAULT_CHAR_LIMIT = 100000;
+constexpr size_t LLOGGER_DEFAULT_CHAR_LIMIT		= 100000;
 constexpr const char* LLOGGER_DEFAULT_FILE_PATH = "./log.txt";
 
 enum class LLogType : uint8_t
@@ -119,6 +161,8 @@ public:
 			delete instance;
 			instance = nullptr;
 		}
+
+		return (instance == nullptr);
 	}
 
 	void SetLogType(const LLogType& newType)
@@ -184,6 +228,7 @@ public:
 		return verbosity;
 	}
 
+#ifdef IS_WINDOWS
 	void SetLogLevelColor(const LLogLevel& level, const int& colorCode)
 	{
 		logLevelColors[level] = colorCode;
@@ -193,13 +238,25 @@ public:
 	{
 		return logLevelColors[level];
 	}
+#else
+	void SetLogLevelColor(const LLogLevel& level, const char* bgCode, const char* fgCode)
+	{
+		logLevelColors[level].first		= bgCode;
+		logLevelColors[level].second	= fgCode;
+	}
+
+	const std::pair<std::string, std::string>& GetLogLevelColor(const LLogLevel& level)
+	{
+		return logLevelColors[level];
+	}
+#endif
 
 	void SetLogBufferLimit(const size_t& size)
 	{
 		logBuffer.resize(size);
 	}
 
-	const size_t& GetLogBufferLimit() const
+	size_t GetLogBufferLimit() const
 	{
 		return logBuffer.size();
 	}
@@ -216,7 +273,7 @@ public:
 				va_start(args, format);
 				vsnprintf(logBuffer.data(), logBuffer.size(), format, args);
 				va_end(args);
-
+				
 				switch (logType)
 				{
 					case LLogType::CONSOLE: case LLogType::CONSOLE_AND_FILE:
@@ -225,7 +282,7 @@ public:
 						printf("%s%s\n", LLogLevelPrefix[level], logBuffer.data());
 						SetConsoleTextAttribute(ConsoleHandle, initialConsoleAttr);
 #else
-						//TODO
+						printf("%s%s%s%s%s\n", logLevelColors[level].first.c_str(), logLevelColors[level].second.c_str(), LLogLevelPrefix[level], logBuffer.data(), COLOR_RESET);
 #endif
 						if (logType == LLogType::CONSOLE_AND_FILE)
 						{
@@ -271,16 +328,21 @@ private:
 		CONSOLE_SCREEN_BUFFER_INFO info;
 		GetConsoleScreenBufferInfo(ConsoleHandle, &info);
 		initialConsoleAttr = info.wAttributes;
-#endif
-
-		//Set default values
-		logType		= LLogType::CONSOLE;
-		verbosity	= 4;
 
 		logLevelColors[LLogLevel::LOG_FATAL]	= BACKGROUND_INTENSE_RED | FOREGROUND_INTENSE_WHITE;
 		logLevelColors[LLogLevel::LOG_ERROR]	= BACKGROUND_BLACK | FOREGROUND_INTENSE_RED;
 		logLevelColors[LLogLevel::LOG_WARN]		= BACKGROUND_BLACK | FOREGROUND_INTENSE_YELLOW;
 		logLevelColors[LLogLevel::LOG_INFO]		= BACKGROUND_BLACK | FOREGROUND_INTENSE_CYAN;
+#else
+
+		logLevelColors[LLogLevel::LOG_FATAL]	= std::make_pair(BACKGROUND_INTENSE_RED, FOREGROUND_INTENSE_WHITE);
+		logLevelColors[LLogLevel::LOG_ERROR]	= std::make_pair(BACKGROUND_BLACK, FOREGROUND_INTENSE_RED);
+		logLevelColors[LLogLevel::LOG_WARN]		= std::make_pair(BACKGROUND_BLACK, FOREGROUND_INTENSE_YELLOW);
+		logLevelColors[LLogLevel::LOG_INFO]		= std::make_pair(BACKGROUND_BLACK,  FOREGROUND_INTENSE_CYAN);
+#endif
+		//Set default values
+		logType = LLogType::CONSOLE;
+		verbosity = 4;
 
 		SetLogBufferLimit(LLOGGER_DEFAULT_CHAR_LIMIT);
 	}
@@ -297,12 +359,13 @@ private:
 	uint8_t					verbosity;
 	std::string				logFilePath;
 	std::ofstream			logFile;
-	std::map<uint8_t, int>	logLevelColors;
+	LogLevelColorMap		logLevelColors;
 	int						initialConsoleAttr;	//Windows only
 	std::vector<char>		logBuffer;
 	std::mutex				logMutex;
 
-	inline void PrintLoggerError(const int& bgCode, const int& fgCode, const char* format, ...)
+	template <typename T>
+	inline void PrintLoggerError(T bgCode, T fgCode, const char* format, ...)
 	{
 		if (instance != nullptr)
 		{
@@ -318,9 +381,8 @@ private:
 			printf("[%s]: %s\n", GetClassStr(), logBuffer.data());
 			SetConsoleTextAttribute(ConsoleHandle, initialConsoleAttr);
 #else
-			//TODO
+			printf("%s%s[%s]: %s%s\n", bgCode, fgCode, GetClassStr(), logBuffer.data(), COLOR_RESET);
 #endif
-
 			logMutex.unlock();
 		}
 	}
