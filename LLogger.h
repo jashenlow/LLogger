@@ -262,10 +262,10 @@ public:
 	{
 		if (instance != nullptr)
 		{
-			logMutex.lock();
-
 			if (verbosity >= level)
 			{
+				std::lock_guard<std::mutex> guard(logMutex);
+
 				va_list args;
 				va_start(args, format);
 				vsnprintf(logBuffer.data(), logBuffer.size(), format, args);
@@ -313,8 +313,6 @@ public:
 						break;
 				}
 			}
-
-			logMutex.unlock();
 		}
 	}
 
@@ -348,7 +346,7 @@ private:
 
 	}
 	LLogger(const LLogger&) = delete;
-	void operator=(const LLogger&) = delete;
+	LLogger& operator=(const LLogger&) = delete;
 
 	static LLogger* instance;
 	
@@ -366,7 +364,7 @@ private:
 	{
 		if (instance != nullptr)
 		{
-			logMutex.lock();
+			std::lock_guard<std::mutex> guard(logMutex);
 
 			va_list args;
 			va_start(args, format);
@@ -380,7 +378,6 @@ private:
 #else
 			printf("%s%s[%s]: %s%s\n", bgCode, fgCode, GetClassStr(), logBuffer.data(), COLOR_RESET);
 #endif
-			logMutex.unlock();
 		}
 	}
 };
