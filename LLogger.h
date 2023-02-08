@@ -33,7 +33,9 @@
 #include <cstdarg>
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#ifndef IS_MSVC
 #define IS_MSVC
+#endif
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -303,8 +305,11 @@ enum class LLogColor
 typedef std::map<uint8_t, int> LogLevelColorMap;	//<Level, colorCode>
 
 #elif defined(__GNUC__)
+#ifndef IS_GNU
 #define IS_GNU
+#endif
 
+#include <cstring>
 #include <sys/param.h>
 
 namespace LLogColor
@@ -655,15 +660,16 @@ public:
 		return (instance == nullptr);
 	}
 
-	void SetLogType(const LLogType& newType)
+	bool SetLogType(const LLogType& newType)
 	{
 		if ((uint8_t)newType > (uint8_t)LLogType::CONSOLE_AND_FILE)
 		{
 			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid LogType entered! Ignoring this call...", __FUNCTION__);
-			return;
+			return false;
 		}
 
 		logType = newType;
+		return true;
 	}
 
 	const LLogType& GetLogType() const
@@ -672,15 +678,16 @@ public:
 	}
 
 	//Include file extension this argument. (e.g.: .txt, .ini)
-	void SetLogFilePath(const char* newPath)
+	bool SetLogFilePath(const char* newPath)
 	{
 		if (newPath == nullptr || (newPath != nullptr && newPath[0] == '\0'))
 		{
 			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid file path entered! Ignoring this call...", __FUNCTION__);
-			return;
+			return false;
 		}
 
 		logFilePath = newPath;
+		return true;
 	}
 
 	const char* GetLogFilePath() const
@@ -688,7 +695,7 @@ public:
 		return logFilePath.c_str();
 	}
 
-	void ClearLogFile()
+	bool ClearLogFile()
 	{
 		if (logFilePath.empty())
 			logFilePath = LLOGGER_DEFAULT_FILE_PATH;
@@ -698,7 +705,12 @@ public:
 		if (logFile.is_open())
 			logFile.close();
 		else
+		{
 			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
+			return false;
+		}
+
+		return true;
 	}
 
 /*
@@ -709,15 +721,16 @@ public:
 *   3 - Logs [FATAL], [ERROR], and [WARN] levels.
 *   4 - Logs all levels.
 */
-	void SetLogLevel(const LLogLevel& newLevel)
+	bool SetLogLevel(const LLogLevel& newLevel)
 	{
 		if (newLevel > LLogLevel::LOG_INFO)
 		{
 			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid verbosity value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)newLevel);
-			return;
+			return false;
 		}
 
 		logLevel = newLevel;
+		return true;
 	}
 
 /*
@@ -734,15 +747,16 @@ public:
 	}
 
 #ifdef IS_MSVC
-	void SetLogLevelColor(const LLogLevel& level, const int& colorCode)
+	bool SetLogLevelColor(const LLogLevel& level, const int& colorCode)
 	{
 		if (level < LLogLevel::LOG_FATAL || level > LLogLevel::LOG_INFO)
 		{
 			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level color value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
-			return;
+			return false;
 		}
 
 		logLevelColors[(uint8_t)level] = colorCode;
+		return true;
 	}
 
 	LLogColor GetLogLevelColor(const LLogLevel& level)
@@ -756,15 +770,21 @@ public:
 		return (LLogColor)logLevelColors[(uint8_t)level];
 	}
 #else
-	void SetLogLevelColor(const LLogLevel& level, const char* colorCode)
+	bool SetLogLevelColor(const LLogLevel& level, const char* colorCode)
 	{
 		if (level < LLogLevel::LOG_FATAL || level > LLogLevel::LOG_INFO)
 		{
 			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
-			return;
+			return false;
+		}
+		if (colorCode == nullptr || (colorCode != nullptr && (colorCode[0] == '\0' || strstr(colorCode, "\033") == nullptr)))
+		{
+			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid colorCode value was set! Ignoring this call...", __FUNCTION__);
+			return false;
 		}
 
 		logLevelColors[(uint8_t)level] = colorCode;
+		return true;
 	}
 
 	const char* GetLogLevelColor(const LLogLevel& level)
@@ -779,12 +799,17 @@ public:
 	}
 #endif
 
-	void SetLogBufferLimit(const size_t& size)
+	bool SetLogBufferLimit(const size_t& size)
 	{
 		if (size <= logBuffer.max_size())
 			logBuffer.resize(size);
 		else
+		{
 			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to set buffer limit of %llu characters! The maximum is %llu.", __FUNCTION__, size, logBuffer.max_size());
+			return false;
+		}
+
+		return true;
 	}
 
 	size_t GetLogBufferLimit() const
@@ -793,20 +818,20 @@ public:
 	}
 
 #ifdef IS_MSVC
-	inline void LogLineColors(const LLogLevel& level, bool includePrefix, const std::initializer_list<const char*>& msg, const std::initializer_list<LLogColor>& colorCode)
+	inline bool LogLineColors(const LLogLevel& level, bool includePrefix, const std::initializer_list<const char*>& msg, const std::initializer_list<LLogColor>& colorCode)
 	{
 		if (level == LLogLevel::LOG_OFF)
-			return;
+			return false;
 		else if (level > LLogLevel::LOG_INFO)
 		{
 			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
-			return;
+			return false;
 		}
 
 		if (msg.size() == 0)
 		{
 			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Empty list detected for argument \"msg\"! Ignoring this call...", __FUNCTION__);
-			return;
+			return false;
 		}
 
 		if (logLevel >= level)
@@ -886,22 +911,24 @@ public:
 					break;
 			}
 		}
+
+		return true;
 	}
 #else
-	inline void LogLineColors(const LLogLevel& level, bool includePrefix, const std::initializer_list<const char*>& msg, const std::initializer_list<const char*>& colorCode)
+	inline bool LogLineColors(const LLogLevel& level, bool includePrefix, const std::initializer_list<const char*>& msg, const std::initializer_list<const char*>& colorCode)
 	{
 		if (level == LLogLevel::LOG_OFF)
-			return;
+			return false;
 		else if (level > LLogLevel::LOG_INFO)
 		{
 			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
-			return;
+			return false;
 		}
 
 		if (msg.size() == 0)
 		{
 			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Empty list detected for argument \"msg\"! Ignoring this call...", __FUNCTION__);
-			return;
+			return false;
 		}
 
 		if (logLevel >= level)
@@ -973,23 +1000,25 @@ public:
 					break;
 			}
 		}
+
+		return true;
 	}
 #endif
 
-	inline void LogLine(const LLogLevel& level, bool includePrefix, const char* format, ...)
+	inline bool LogLine(const LLogLevel& level, bool includePrefix, const char* format, ...)
 	{
 		if (level == LLogLevel::LOG_OFF)
-			return;
+			return false;
 		else if (level > LLogLevel::LOG_INFO)
 		{
 			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
-			return;
+			return false;
 		}
 
 		if (format == nullptr || (format != nullptr && format[0] == '\0'))
 		{
 			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: An empty or invalid string has been entered! Ignoring this call...", __FUNCTION__);
-			return;
+			return false;
 		}
 
 		if (logLevel >= level)
@@ -1008,7 +1037,7 @@ public:
 			else
 			{
 				va_end(args);
-				return;
+				return false;
 			}
 			va_end(args);
 
@@ -1068,6 +1097,8 @@ public:
 					break;
 			}
 		}
+
+		return true;
 	}
 
 private:
