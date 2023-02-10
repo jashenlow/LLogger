@@ -639,26 +639,31 @@ constexpr std::array<const char*, 5> LLogLevelPrefix = { "[OFF] ", "[FATAL] ", "
 class LLogger
 {
 public:
+	LLogger()
+	{
+#ifdef IS_MSVC
+		GetConsoleScreenBufferInfo(ConsoleHandle, &consoleBufferInfo);
+		consoleAttr = consoleBufferInfo.wAttributes;
+
+		logLevelColors[(uint8_t)LLogLevel::LOG_FATAL]	= (int)LLogColor::INTENSE_WHITE_ON_INTENSE_RED;
+		logLevelColors[(uint8_t)LLogLevel::LOG_ERROR]	= (int)LLogColor::INTENSE_RED_ON_BLACK;
+		logLevelColors[(uint8_t)LLogLevel::LOG_WARN]	= (int)LLogColor::INTENSE_YELLOW_ON_BLACK;
+		logLevelColors[(uint8_t)LLogLevel::LOG_INFO]	= (int)LLogColor::INTENSE_CYAN_ON_BLACK;
+#else
+		logLevelColors[(uint8_t)LLogLevel::LOG_FATAL]	= LLogColor::INTENSE_WHITE_ON_INTENSE_RED;
+		logLevelColors[(uint8_t)LLogLevel::LOG_ERROR]	= LLogColor::INTENSE_RED_ON_BLACK;
+		logLevelColors[(uint8_t)LLogLevel::LOG_WARN]	= LLogColor::INTENSE_YELLOW_ON_BLACK;
+		logLevelColors[(uint8_t)LLogLevel::LOG_INFO]	= LLogColor::INTENSE_CYAN_ON_BLACK;
+#endif
+		//Set default values
+		logType		= LLogType::CONSOLE;
+		logLevel	= LLogLevel::LOG_INFO;
+		logFilePath = LLOGGER_DEFAULT_FILE_PATH;
+		SetLogBufferLimit(LLOGGER_DEFAULT_CHAR_LIMIT);
+	}
+	~LLogger(){}
+
 	const char* GetClassStr() { return "LLogger"; }
-
-	static LLogger* GetInstance()
-	{
-		if (instance == nullptr)
-			instance = new LLogger();
-
-		return instance;
-	}
-
-	static bool DestroyInstance()
-	{
-		if (instance != nullptr)
-		{
-			delete instance;
-			instance = nullptr;
-		}
-
-		return (instance == nullptr);
-	}
 
 	bool SetLogType(const LLogType& newType)
 	{
@@ -777,7 +782,7 @@ public:
 			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
 			return false;
 		}
-		if (colorCode == nullptr || (colorCode != nullptr && (colorCode[0] == '\0' || strstr(colorCode, "\033") == nullptr)))
+		if (colorCode == nullptr || (colorCode != nullptr && (colorCode[0] == '\0' || strstr(colorCode, "\033[") == nullptr)))
 		{
 			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid colorCode value was set! Ignoring this call...", __FUNCTION__);
 			return false;
@@ -1102,36 +1107,8 @@ public:
 	}
 
 private:
-	LLogger()
-	{
-#ifdef IS_MSVC
-		GetConsoleScreenBufferInfo(ConsoleHandle, &consoleBufferInfo);
-		consoleAttr = consoleBufferInfo.wAttributes;
-
-		logLevelColors[(uint8_t)LLogLevel::LOG_FATAL]	= (int)LLogColor::INTENSE_WHITE_ON_INTENSE_RED;
-		logLevelColors[(uint8_t)LLogLevel::LOG_ERROR]	= (int)LLogColor::INTENSE_RED_ON_BLACK;
-		logLevelColors[(uint8_t)LLogLevel::LOG_WARN]	= (int)LLogColor::INTENSE_YELLOW_ON_BLACK;
-		logLevelColors[(uint8_t)LLogLevel::LOG_INFO]	= (int)LLogColor::INTENSE_CYAN_ON_BLACK;
-#else
-		logLevelColors[(uint8_t)LLogLevel::LOG_FATAL]	= LLogColor::INTENSE_WHITE_ON_INTENSE_RED;
-		logLevelColors[(uint8_t)LLogLevel::LOG_ERROR]	= LLogColor::INTENSE_RED_ON_BLACK;
-		logLevelColors[(uint8_t)LLogLevel::LOG_WARN]	= LLogColor::INTENSE_YELLOW_ON_BLACK;
-		logLevelColors[(uint8_t)LLogLevel::LOG_INFO]	= LLogColor::INTENSE_CYAN_ON_BLACK;
-#endif
-		//Set default values
-		logType		= LLogType::CONSOLE;
-		logLevel	= LLogLevel::LOG_INFO;
-		logFilePath = LLOGGER_DEFAULT_FILE_PATH;
-		SetLogBufferLimit(LLOGGER_DEFAULT_CHAR_LIMIT);
-	}
-	~LLogger()
-	{
-
-	}
 	LLogger(const LLogger&) = delete;
 	LLogger& operator=(const LLogger&) = delete;
-
-	static LLogger* instance;
 	
 	LLogType					logType;
 	LLogLevel					logLevel;
@@ -1202,7 +1179,5 @@ private:
 		return (a < b) ? a : b;
 	}
 };
-
-LLogger* LLogger::instance = nullptr;
 
 #endif	//_LLOGGER_H_
