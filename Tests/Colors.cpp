@@ -1,4 +1,4 @@
-#include "../../LLogger.h"
+#include "../LLogger.h"
 
 int main(int argc, char** argv)
 {
