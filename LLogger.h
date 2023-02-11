@@ -1159,7 +1159,7 @@ private:
 	{
 		if (setSize > LLOGGER_MAX_CHAR_LIMIT)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to set buffer limit of %zd characters! The maximum is %llu.", __FUNCTION__, setSize, LLOGGER_MAX_CHAR_LIMIT);
+			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to set buffer limit of %zd characters! The maximum is %zd.", __FUNCTION__, setSize, LLOGGER_MAX_CHAR_LIMIT);
 			return false;
 		}
 		else if (setSize > logBuffer.size() && setSize <= LLOGGER_MAX_CHAR_LIMIT)

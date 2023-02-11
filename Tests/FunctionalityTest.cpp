@@ -281,6 +281,49 @@ TEST(LogLine, emptyString)
     EXPECT_FALSE(logger.LogLine(LLogLevel::LOG_INFO, true, ""));
 }
 
+TEST(LogLine, includePrefix)
+{
+    LLogger logger;
+
+    logger.SetLogType(LLogType::CONSOLE_AND_FILE);
+    bool res = logger.LogLine(LLogLevel::LOG_INFO, true, "This is a test print string.");
+
+    std::ifstream logFile;
+    logFile.open(logger.GetLogFilePath());
+
+    ASSERT_TRUE(logFile.is_open());
+    std::stringstream ss;
+    ss << logFile.rdbuf();
+    logFile.close();
+    logger.ClearLogFile();
+
+    size_t prefixIndex = ss.str().find(LLogLevelPrefix[(uint8_t)LLogLevel::LOG_INFO]);
+
+    EXPECT_TRUE(res && prefixIndex != std::string::npos);
+}
+
+TEST(LogLine, excludePrefix)
+{
+    LLogger logger;
+
+    logger.SetLogType(LLogType::CONSOLE_AND_FILE);
+    bool res = logger.LogLine(LLogLevel::LOG_INFO, false, "This is a test print string.");
+
+    std::ifstream logFile;
+    logFile.open(logger.GetLogFilePath());
+
+    ASSERT_TRUE(logFile.is_open());
+    std::stringstream ss;
+    ss << logFile.rdbuf();
+    logFile.close();
+    logger.ClearLogFile();
+
+    size_t prefixIndex = ss.str().find(LLogLevelPrefix[(uint8_t)LLogLevel::LOG_INFO]);
+
+    EXPECT_TRUE(res && prefixIndex == std::string::npos);
+}
+
+
 int main(int argc, char** argv)
 {
     testing::InitGoogleTest(&argc, argv);
