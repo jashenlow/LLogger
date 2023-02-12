@@ -640,6 +640,10 @@ constexpr std::array<const char*, 5> LLogLevelPrefix = { "[OFF] ", "[FATAL] ", "
 class LLogger
 {
 public:
+	/*
+	* Description    :  Default constructor. Initializes all default settings.
+	* Return         :
+	*/
 	LLogger()
 	{
 #ifdef IS_MSVC
@@ -662,10 +666,23 @@ public:
 		logFilePath = LLOGGER_DEFAULT_FILE_PATH;
 		SetLogBufferLimit(LLOGGER_DEFAULT_CHAR_LIMIT);
 	}
+
+	/*
+	* Description    :  Default destructor.
+	* Return         :
+	*/
 	~LLogger(){}
 
+	/*
+	* Description    :  Returns the class name as a C string.
+	* Return         :  Class name as a C string.
+	*/
 	const char* GetClassStr() { return "LLogger"; }
 
+	/*
+	* Description    :  Sets the type of output that the logger will generate, based on enum LLogType.
+	* Return         :  True = Successful execution, False = Error detected.
+	*/
 	bool SetLogType(const LLogType& newType)
 	{
 		if ((uint8_t)newType > (uint8_t)LLogType::CONSOLE_AND_FILE)
@@ -678,12 +695,20 @@ public:
 		return true;
 	}
 
+	/*
+	* Description    :  Returns the current log type setting, based on enum LLogType.
+	* Return         :  Current log type.
+	*/
 	const LLogType& GetLogType() const
 	{
 		return logType;
 	}
 
-	//Include file extension this argument. (e.g.: .txt, .ini)
+	/*
+	* Description    :  Sets the type of output that the logger will generate, based on enum LLogType.
+	*                :  NOTE: Include file extension in the argument. (e.g.: .txt, .ini).
+	* Return         :  True = Successful execution, False = Error detected.
+	*/
 	bool SetLogFilePath(const char* newPath)
 	{
 		if (newPath == nullptr || (newPath != nullptr && newPath[0] == '\0'))
@@ -696,11 +721,19 @@ public:
 		return true;
 	}
 
+	/*
+	* Description    :  Returns the current log file path as a C string.
+	* Return         :  Current log file path.
+	*/
 	const char* GetLogFilePath() const
 	{
 		return logFilePath.c_str();
 	}
 
+	/*
+	* Description    :  Clears the contents of the log file.
+	* Return         :  True = Successful execution, False = Error detected.
+	*/
 	bool ClearLogFile()
 	{
 		if (logFilePath.empty())
@@ -719,14 +752,16 @@ public:
 		return true;
 	}
 
-/*
-* Verbosity Levels:
-*   0 - Does not log anything.
-*   1 - Only logs [FATAL] level.
-*   2 - Logs [FATAL] and [ERROR] levels.
-*   3 - Logs [FATAL], [ERROR], and [WARN] levels.
-*   4 - Logs all levels.
-*/
+	/*
+	* Description    :  Sets the current logging verbosity level, based on enum LLogLevel.
+	*                :  Log level descriptions:
+	*                       0 - Does not log anything.
+    *                       1 - Only logs [FATAL] level.
+    *                       2 - Logs [FATAL] and [ERROR] levels.
+    *                       3 - Logs [FATAL], [ERROR], and [WARN] levels.
+    *                       4 - Logs all levels.
+	* Return         :  True = Successful execution, False = Error detected.
+	*/
 	bool SetLogLevel(const LLogLevel& newLevel)
 	{
 		if (newLevel > LLogLevel::LOG_INFO)
@@ -739,20 +774,26 @@ public:
 		return true;
 	}
 
-/*
-* Verbosity Levels:
-*   0 - Does not log anything.
-*   1 - Only logs [FATAL] level.
-*   2 - Logs [FATAL] and [ERROR] levels.
-*   3 - Logs [FATAL], [ERROR], and [WARN] levels.
-*   4 - Logs all levels.
-*/
+    /*
+	* Description    :  Returns the current logging verbosity level, based on enum LLogLevel.
+	*                :  Log level descriptions:
+	*                       0 - Does not log anything.
+    *                       1 - Only logs [FATAL] level.
+    *                       2 - Logs [FATAL] and [ERROR] levels.
+    *                       3 - Logs [FATAL], [ERROR], and [WARN] levels.
+    *                       4 - Logs all levels.
+	* Return         :  Current log level.
+	*/
 	const LLogLevel& GetLogLevel() const
 	{
 		return logLevel;
 	}
 
 #ifdef IS_MSVC
+	/*
+	* Description    :  Sets the color code of a selected log level.
+	* Return         :  True = Successful execution, False = Error detected.
+	*/
 	bool SetLogLevelColor(const LLogLevel& level, const LLogColor& colorCode)
 	{
 		if (level < LLogLevel::LOG_FATAL || level > LLogLevel::LOG_INFO)
@@ -765,6 +806,10 @@ public:
 		return true;
 	}
 
+	/*
+	* Description    :  Returns the currently configured color code of a selected log level.
+	* Return         :  Current color code.
+	*/
 	LLogColor GetLogLevelColor(const LLogLevel& level)
 	{
 		if (level < LLogLevel::LOG_FATAL || level > LLogLevel::LOG_INFO)
@@ -776,6 +821,10 @@ public:
 		return (LLogColor)logLevelColors[(uint8_t)level];
 	}
 #else
+    /*
+	* Description    :  Sets the color code of a selected log level.
+	* Return         :  True = Successful execution, False = Error detected.
+	*/
 	bool SetLogLevelColor(const LLogLevel& level, const char* colorCode)
 	{
 		if (level < LLogLevel::LOG_FATAL || level > LLogLevel::LOG_INFO)
@@ -793,6 +842,10 @@ public:
 		return true;
 	}
 
+	/*
+	* Description    :  Returns the currently configured color code of a selected log level.
+	* Return         :  Current color code.
+	*/
 	const char* GetLogLevelColor(const LLogLevel& level)
 	{
 		if (level < LLogLevel::LOG_FATAL || level > LLogLevel::LOG_INFO)
@@ -805,6 +858,10 @@ public:
 	}
 #endif
 
+	/*
+	* Description    :  Sets the size of the internal log buffer.
+	* Return         :  True = Successful execution, False = Error detected.
+	*/
 	bool SetLogBufferLimit(const size_t& size)
 	{
 		if (size <= LLOGGER_MAX_CHAR_LIMIT)
@@ -818,12 +875,20 @@ public:
 		return true;
 	}
 
+	/*
+	* Description    :  Returns the size of the internal log buffer.
+	* Return         :  Log buffer size.
+	*/
 	size_t GetLogBufferLimit() const
 	{
 		return logBuffer.size();
 	}
 
 #ifdef IS_MSVC
+	/*
+	* Description    :  Logs the list of texts in argument "msg", and displays them in their respective colors defined by argument "colorCode".
+	* Return         :  True = Successful execution, False = Error detected.
+	*/
 	inline bool LogLineColors(const LLogLevel& level, bool includePrefix, const std::initializer_list<const char*>& msg, const std::initializer_list<LLogColor>& colorCode)
 	{
 		if (level == LLogLevel::LOG_OFF)
@@ -921,6 +986,10 @@ public:
 		return true;
 	}
 #else
+    /*
+	* Description    :  Logs the list of texts in argument "msg", and displays them in their respective colors defined by argument "colorCode".
+	* Return         :  True = Successful execution, False = Error detected.
+	*/
 	inline bool LogLineColors(const LLogLevel& level, bool includePrefix, const std::initializer_list<const char*>& msg, const std::initializer_list<const char*>& colorCode)
 	{
 		if (level == LLogLevel::LOG_OFF)
@@ -1010,7 +1079,12 @@ public:
 		return true;
 	}
 #endif
-
+	
+	/*
+	* Description    :  Logs a formatted C string at the verbosity level defined in argument "level".
+	*                :  NOTE: Formatting is exactly the same as calling printf.
+	* Return         :  True = Successful execution, False = Error detected.
+	*/
 	inline bool LogLine(const LLogLevel& level, bool includePrefix, const char* format, ...)
 	{
 		if (level == LLogLevel::LOG_OFF)
@@ -1124,6 +1198,10 @@ private:
 	std::mutex                  logMutex, errorMutex;
 
 #ifdef IS_MSVC
+	/*
+	* Description    :  Prints an error message as a C string.
+	* Return         :  
+	*/
 	inline void PrintLoggerError(const LLogColor& colorCode, const char* format, ...)
 	{
 		std::lock_guard<std::mutex> guard(errorMutex);
@@ -1142,6 +1220,10 @@ private:
 		SetConsoleTextAttribute(ConsoleHandle, consoleAttr);
 	}
 #else
+	/*
+	* Description    :  Prints an error message as a C string.
+	* Return         :  
+	*/
 	inline void PrintLoggerError(const char* colorCode, const char* format, ...)
 	{
 		std::lock_guard<std::mutex> guard(errorMutex);
@@ -1154,7 +1236,11 @@ private:
 		printf("%s[%s] %s%s\n", colorCode, GetClassStr(), logBuffer.c_str(), LLogColor::COLOR_RESET);
 	}
 #endif
-
+	/*
+	* Description    :  Checks if the log buffer size is adequate for the size in argument "setSize".
+	*                   If the current buffer size is smaller, it will increase in steps.
+	* Return         :  True = Successful execution, False = Error detected.
+	*/
 	inline bool CheckOrIncreaseBufferSize(const size_t& setSize)
 	{
 		if (setSize > LLOGGER_MAX_CHAR_LIMIT)

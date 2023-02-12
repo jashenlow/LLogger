@@ -2,7 +2,7 @@
 A simple and lightweight C++ console logger.
 ## Highlights
 - Header only
-- C++11-compliant.
+- C++11 and above.
 - Cross-platform (Windows/Mac/Linux)
 - Thread-safe
 ## Information
