@@ -29,5 +29,15 @@ Colors are configurable for all log levels by simply calling `SetLogLevelColor`.
 
 > [Terminal Colors](https://chrisyeh96.github.io/2020/03/28/terminal-colors.html)
 
+## Usage (Example)
+**Code:**
+
+
+![UsageExample_Code](https://user-images.githubusercontent.com/50681738/218299662-1bcef1d4-7b0a-4cf5-91cb-708954670c71.PNG)
+| **Code**  |  **Output**   |
+|:----------|:--------------|
+|           |![UsageExample_Output](https://user-images.githubusercontent.com/50681738/218299689-90ffb443-6a00-40c3-a15d-36e19b4fb7cb.PNG)               |
+
+
 ## Future Developments
 - Unicode compatibility.
