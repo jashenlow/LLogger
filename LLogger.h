@@ -687,7 +687,7 @@ public:
 	{
 		if ((uint8_t)newType > (uint8_t)LLogType::CONSOLE_AND_FILE)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid LogType entered! Ignoring this call...", __FUNCTION__);
+			PrintLoggerError(true, LLogColor::RED_ON_BLACK, "%s: Invalid LogType entered! Ignoring this call...", __FUNCTION__);
 			return false;
 		}
 
@@ -713,7 +713,7 @@ public:
 	{
 		if (newPath == nullptr || (newPath != nullptr && newPath[0] == '\0'))
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid file path entered! Ignoring this call...", __FUNCTION__);
+			PrintLoggerError(true, LLogColor::RED_ON_BLACK, "%s: Invalid file path entered! Ignoring this call...", __FUNCTION__);
 			return false;
 		}
 
@@ -745,7 +745,7 @@ public:
 			logFile.close();
 		else
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
+			PrintLoggerError(true, LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
 			return false;
 		}
 
@@ -766,7 +766,7 @@ public:
 	{
 		if (newLevel > LLogLevel::LOG_INFO)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid verbosity value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)newLevel);
+			PrintLoggerError(true, LLogColor::RED_ON_BLACK, "%s: Invalid verbosity value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)newLevel);
 			return false;
 		}
 
@@ -798,7 +798,7 @@ public:
 	{
 		if (level < LLogLevel::LOG_FATAL || level > LLogLevel::LOG_INFO)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level color value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
+			PrintLoggerError(true, LLogColor::RED_ON_BLACK, "%s: Invalid log level color value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
 			return false;
 		}
 
@@ -814,7 +814,7 @@ public:
 	{
 		if (level < LLogLevel::LOG_FATAL || level > LLogLevel::LOG_INFO)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level color value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
+			PrintLoggerError(true, LLogColor::RED_ON_BLACK, "%s: Invalid log level color value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
 			return LLogColor::FOREGROUND_BLACK;
 		}
 
@@ -829,12 +829,12 @@ public:
 	{
 		if (level < LLogLevel::LOG_FATAL || level > LLogLevel::LOG_INFO)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
+			PrintLoggerError(true, LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
 			return false;
 		}
 		if (colorCode == nullptr || (colorCode != nullptr && (colorCode[0] == '\0' || strstr(colorCode, "\033[") == nullptr)))
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid colorCode value was set! Ignoring this call...", __FUNCTION__);
+			PrintLoggerError(true, LLogColor::RED_ON_BLACK, "%s: Invalid colorCode value was set! Ignoring this call...", __FUNCTION__);
 			return false;
 		}
 
@@ -850,7 +850,7 @@ public:
 	{
 		if (level < LLogLevel::LOG_FATAL || level > LLogLevel::LOG_INFO)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
+			PrintLoggerError(true, LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
 			return "";
 		}
 
@@ -868,7 +868,7 @@ public:
 			logBuffer.resize(size);
 		else
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to set buffer limit of %zd characters! The maximum is %zd.", __FUNCTION__, size, LLOGGER_MAX_CHAR_LIMIT);
+			PrintLoggerError(true, LLogColor::RED_ON_BLACK, "%s: Unable to set buffer limit of %zd characters! The maximum is %zd.", __FUNCTION__, size, LLOGGER_MAX_CHAR_LIMIT);
 			return false;
 		}
 
@@ -889,25 +889,26 @@ public:
 	* Description    :  Logs the list of texts in argument "msg", and displays them in their respective colors defined by argument "colorCode".
 	* Return         :  True = Successful execution, False = Error detected.
 	*/
-	inline bool LogLineColors(const LLogLevel& level, bool includePrefix, const std::initializer_list<const char*>& msg, const std::initializer_list<LLogColor>& colorCode)
+	inline bool LogLineColors(bool useMutex, const LLogLevel& level, bool includePrefix, const std::initializer_list<const char*>& msg, const std::initializer_list<LLogColor>& colorCode)
 	{
 		if (level == LLogLevel::LOG_OFF)
 			return false;
 		else if (level > LLogLevel::LOG_INFO)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
+			PrintLoggerError(useMutex, LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
 			return false;
 		}
 
 		if (msg.size() == 0)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Empty list detected for argument \"msg\"! Ignoring this call...", __FUNCTION__);
+			PrintLoggerError(useMutex, LLogColor::RED_ON_BLACK, "%s: Empty list detected for argument \"msg\"! Ignoring this call...", __FUNCTION__);
 			return false;
 		}
 
 		if (logLevel >= level)
 		{
-			std::lock_guard<std::mutex> guard(logMutex);
+			if (useMutex)
+				std::lock_guard<std::mutex> guard(logMutex);
 
 			auto colorIter = colorCode.begin();
 
@@ -919,7 +920,7 @@ public:
 						logFile.open(logFilePath, std::ios::app);
 
 						if (!logFile.is_open())
-							PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
+							PrintLoggerError(useMutex, LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
 						else
 						{
 							if (includePrefix)
@@ -964,7 +965,7 @@ public:
 					logFile.open(logFilePath, std::ios::app);
 
 					if (!logFile.is_open())
-						PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
+						PrintLoggerError(useMutex, LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
 					else
 					{
 						if (includePrefix)
@@ -990,25 +991,26 @@ public:
 	* Description    :  Logs the list of texts in argument "msg", and displays them in their respective colors defined by argument "colorCode".
 	* Return         :  True = Successful execution, False = Error detected.
 	*/
-	inline bool LogLineColors(const LLogLevel& level, bool includePrefix, const std::initializer_list<const char*>& msg, const std::initializer_list<const char*>& colorCode)
+	inline bool LogLineColors(bool useMutex, const LLogLevel& level, bool includePrefix, const std::initializer_list<const char*>& msg, const std::initializer_list<const char*>& colorCode)
 	{
 		if (level == LLogLevel::LOG_OFF)
 			return false;
 		else if (level > LLogLevel::LOG_INFO)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
+			PrintLoggerError(useMutex, LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
 			return false;
 		}
 
 		if (msg.size() == 0)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Empty list detected for argument \"msg\"! Ignoring this call...", __FUNCTION__);
+			PrintLoggerError(useMutex, LLogColor::RED_ON_BLACK, "%s: Empty list detected for argument \"msg\"! Ignoring this call...", __FUNCTION__);
 			return false;
 		}
 
 		if (logLevel >= level)
 		{
-			std::lock_guard<std::mutex> guard(logMutex);
+			if (useMutex)
+				std::lock_guard<std::mutex> guard(logMutex);
 
 			auto colorIter = colorCode.begin();
 
@@ -1020,7 +1022,7 @@ public:
 						logFile.open(logFilePath, std::ios::app);
 
 						if (!logFile.is_open())
-							PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
+							PrintLoggerError(useMutex, LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
 						else
 						{
 							if (includePrefix)
@@ -1057,7 +1059,7 @@ public:
 					logFile.open(logFilePath, std::ios::app);
 
 					if (!logFile.is_open())
-						PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
+						PrintLoggerError(useMutex, LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
 					else
 					{
 						if (includePrefix)
@@ -1085,25 +1087,26 @@ public:
 	*                :  NOTE: Formatting is exactly the same as calling printf.
 	* Return         :  True = Successful execution, False = Error detected.
 	*/
-	inline bool LogLine(const LLogLevel& level, bool includePrefix, const char* format, ...)
+	inline bool LogLine(bool useMutex, const LLogLevel& level, bool includePrefix, const char* format, ...)
 	{
 		if (level == LLogLevel::LOG_OFF)
 			return false;
 		else if (level > LLogLevel::LOG_INFO)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
+			PrintLoggerError(useMutex, LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
 			return false;
 		}
 
 		if (format == nullptr || (format != nullptr && format[0] == '\0'))
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: An empty or invalid string has been entered! Ignoring this call...", __FUNCTION__);
+			PrintLoggerError(useMutex, LLogColor::RED_ON_BLACK, "%s: An empty or invalid string has been entered! Ignoring this call...", __FUNCTION__);
 			return false;
 		}
 
 		if (logLevel >= level)
 		{
-			std::lock_guard<std::mutex> guard(logMutex);
+			if (useMutex)
+				std::lock_guard<std::mutex> guard(logMutex);
 
 			std::va_list args;
 			va_start(args, format);
@@ -1157,7 +1160,7 @@ public:
 							logFile.close();
 						}
 						else
-							PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
+							PrintLoggerError(useMutex, LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
 					}
 					break;
 				case LLogType::FILE:
@@ -1172,7 +1175,7 @@ public:
 						logFile.close();
 					}
 					else
-						PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
+						PrintLoggerError(useMutex, LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
 					
 					break;
 			}
@@ -1202,9 +1205,10 @@ private:
 	* Description    :  Prints an error message as a C string.
 	* Return         :  
 	*/
-	inline void PrintLoggerError(const LLogColor& colorCode, const char* format, ...)
+	inline void PrintLoggerError(bool useMutex, const LLogColor& colorCode, const char* format, ...)
 	{
-		std::lock_guard<std::mutex> guard(errorMutex);
+		if (useMutex)
+			std::lock_guard<std::mutex> guard(errorMutex);
 
 		std::va_list args;
 		va_start(args, format);
@@ -1224,9 +1228,10 @@ private:
 	* Description    :  Prints an error message as a C string.
 	* Return         :  
 	*/
-	inline void PrintLoggerError(const char* colorCode, const char* format, ...)
+	inline void PrintLoggerError(bool useMutex, const char* colorCode, const char* format, ...)
 	{
-		std::lock_guard<std::mutex> guard(errorMutex);
+		if (useMutex)
+			std::lock_guard<std::mutex> guard(errorMutex);
 
 		std::va_list args;
 		va_start(args, format);
@@ -1245,7 +1250,7 @@ private:
 	{
 		if (setSize > LLOGGER_MAX_CHAR_LIMIT)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to set buffer limit of %zd characters! The maximum is %zd.", __FUNCTION__, setSize, LLOGGER_MAX_CHAR_LIMIT);
+			PrintLoggerError(true, LLogColor::RED_ON_BLACK, "%s: Unable to set buffer limit of %zd characters! The maximum is %zd.", __FUNCTION__, setSize, LLOGGER_MAX_CHAR_LIMIT);
 			return false;
 		}
 		else if (setSize > logBuffer.size() && setSize <= LLOGGER_MAX_CHAR_LIMIT)
