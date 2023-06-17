@@ -293,6 +293,8 @@ int main(int argc, char** argv)
     printf("--------------------------------------------------------------------\n");
 #endif
 
+    logger.LogLineColors(LLogLevel::LOG_INFO, true, {"RED ", "GREEN ", "BLUE ", "YELLOW"}, {LLogColor::INTENSE_RED_ON_BLACK, LLogColor::INTENSE_GREEN_ON_BLACK, LLogColor::INTENSE_BLUE_ON_BLACK, LLogColor::INTENSE_YELLOW_ON_BLACK});
+
 	for (uint8_t i = 0; i < 5; i++)
         logger.LogLine((LLogLevel)i, true, "LOG LEVEL %i TEST", i);
 

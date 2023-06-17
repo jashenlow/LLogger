@@ -217,28 +217,28 @@ TEST(LogLevelColor, wordString)
 }
 #endif
 
-TEST(LogBufferLimit, validSize)
+TEST(LogBufferSize, validSize)
 {
     LLogger logger;
     std::string dummyStr;
     
-    size_t newSize = LLOGGER_MAX_CHAR_LIMIT;
+    size_t newSize = LLOGGER_MAX_BUFFER_SIZE;
 
-    bool res = logger.SetLogBufferLimit(newSize);
+    bool res = logger.SetLogBufferSize(newSize);
 
-    EXPECT_TRUE(res && logger.GetLogBufferLimit() == newSize);
+    EXPECT_TRUE(res && logger.GetLogBufferSize() == newSize);
 }
 
-TEST(LogBufferLimit, inValidSize)
+TEST(LogBufferSize, inValidSize)
 {
     LLogger logger;
     std::string dummyStr;
     
-    size_t newSize = LLOGGER_MAX_CHAR_LIMIT + 1;
+    size_t newSize = LLOGGER_MAX_BUFFER_SIZE + 1;
 
-    bool res = logger.SetLogBufferLimit(newSize);
+    bool res = logger.SetLogBufferSize(newSize);
 
-    EXPECT_TRUE(!res && logger.GetLogBufferLimit() < newSize);
+    EXPECT_TRUE(!res && logger.GetLogBufferSize() < newSize);
 }
 
 TEST(LogLine, validString)
@@ -252,11 +252,11 @@ TEST(LogLine, validString)
 TEST(LogLine, bufferResize)
 {
     LLogger logger;
-    std::string testStr(LLOGGER_PRINTF_CHAR_LIMIT + 1, 'a');
+    std::string testStr(LLOGGER_DEFAULT_BUFFER_SIZE + 1, 'a');
 
     bool res = logger.LogLine(LLogLevel::LOG_INFO, true, testStr.c_str());
 
-    EXPECT_TRUE(res && logger.GetLogBufferLimit() == (LLOGGER_PRINTF_CHAR_LIMIT + LLOGGER_BUFFER_STEP_SIZE));
+    EXPECT_TRUE(res && logger.GetLogBufferSize() == (LLOGGER_DEFAULT_BUFFER_SIZE + LLOGGER_BUFFER_STEP_SIZE));
 }
 
 TEST(LogLine, LOG_OFF)

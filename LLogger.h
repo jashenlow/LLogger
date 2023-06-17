@@ -24,13 +24,11 @@
 #ifndef _LLOGGER_H_
 #define _LLOGGER_H_
 
-#include <iostream>
 #include <fstream>
 #include <array>
-#include <map>
 #include <vector>
 #include <mutex>
-#include <cstdarg>
+#include <stdarg.h>
 
 #if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 #ifndef IS_MSVC
@@ -43,7 +41,7 @@
 #include <Windows.h>
 #include <wincon.h>
 
-enum class LLogColor
+enum class LLogColor : uint16_t
 {
 	//Foreground only
 	FOREGROUND_WHITE			= (FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN),
@@ -302,14 +300,14 @@ enum class LLogColor
 
 #define ConsoleHandle GetStdHandle(STD_OUTPUT_HANDLE)
 
-typedef std::map<uint8_t, int> LogLevelColorMap;  //<Level, colorCode>
+typedef std::array<uint16_t, 5> LogLevelColorMap;  //<Level, colorCode>
 
 #elif defined(__GNUC__)
 #ifndef IS_GNU
 #define IS_GNU
 #endif
 
-#include <cstring>
+#include <string.h>
 #include <sys/param.h>
 
 namespace LLogColor
@@ -612,14 +610,14 @@ namespace LLogColor
 	constexpr const char* COLOR_RESET						= "\033[0m";
 }
 
-typedef std::map<uint8_t, std::string> LogLevelColorMap;  //<level, colorCode>
+typedef std::array<const char*, 5> LogLevelColorMap;  //<level, colorCode>
 #endif
 
-constexpr size_t LLOGGER_MAX_CHAR_LIMIT         = 4294967296 - 1;  //4GB - 1
-constexpr size_t LLOGGER_ERR_CHAR_LIMIT         = 512;
-constexpr size_t LLOGGER_PRINTF_CHAR_LIMIT      = 4095;
-constexpr size_t LLOGGER_BUFFER_STEP_SIZE       = 64;
 constexpr const char* LLOGGER_DEFAULT_FILE_PATH = "./log.txt";
+constexpr size_t LLOGGER_MAX_BUFFER_SIZE        = 1073741824;  //1GB
+constexpr size_t LLOGGER_ERR_BUFFER_SIZE        = 128;
+constexpr size_t LLOGGER_DEFAULT_BUFFER_SIZE    = 128;
+constexpr size_t LLOGGER_BUFFER_STEP_SIZE       = 64;
 
 enum class LLogType : uint8_t
 {
@@ -648,13 +646,14 @@ public:
 	LLogger()
 	{
 #ifdef IS_MSVC
+		CONSOLE_SCREEN_BUFFER_INFO  consoleBufferInfo;
 		GetConsoleScreenBufferInfo(ConsoleHandle, &consoleBufferInfo);
-		consoleAttr = consoleBufferInfo.wAttributes;
+		defaultConsoleAttr = consoleBufferInfo.wAttributes;
 
-		logLevelColors[(uint8_t)LLogLevel::LOG_FATAL]   = (int)LLogColor::INTENSE_WHITE_ON_INTENSE_RED;
-		logLevelColors[(uint8_t)LLogLevel::LOG_ERROR]   = (int)LLogColor::INTENSE_RED_ON_BLACK;
-		logLevelColors[(uint8_t)LLogLevel::LOG_WARN]    = (int)LLogColor::INTENSE_YELLOW_ON_BLACK;
-		logLevelColors[(uint8_t)LLogLevel::LOG_INFO]    = (int)LLogColor::INTENSE_CYAN_ON_BLACK;
+		logLevelColors[(uint8_t)LLogLevel::LOG_FATAL]   = (uint16_t)LLogColor::INTENSE_WHITE_ON_INTENSE_RED;
+		logLevelColors[(uint8_t)LLogLevel::LOG_ERROR]   = (uint16_t)LLogColor::INTENSE_RED_ON_BLACK;
+		logLevelColors[(uint8_t)LLogLevel::LOG_WARN]    = (uint16_t)LLogColor::INTENSE_YELLOW_ON_BLACK;
+		logLevelColors[(uint8_t)LLogLevel::LOG_INFO]    = (uint16_t)LLogColor::INTENSE_CYAN_ON_BLACK;
 #else
 		logLevelColors[(uint8_t)LLogLevel::LOG_FATAL]   = LLogColor::INTENSE_WHITE_ON_INTENSE_RED;
 		logLevelColors[(uint8_t)LLogLevel::LOG_ERROR]   = LLogColor::INTENSE_RED_ON_BLACK;
@@ -665,7 +664,7 @@ public:
 		logType	    = LLogType::CONSOLE;
 		logLevel    = LLogLevel::LOG_INFO;
 		logFilePath = LLOGGER_DEFAULT_FILE_PATH;
-		SetLogBufferLimit(LLOGGER_PRINTF_CHAR_LIMIT);
+		SetLogBufferSize(LLOGGER_DEFAULT_BUFFER_SIZE);
 	}
 
 	/*
@@ -855,7 +854,7 @@ public:
 			return "";
 		}
 
-		return logLevelColors[(uint8_t)level].c_str();
+		return logLevelColors[(uint8_t)level];
 	}
 #endif
 
@@ -863,13 +862,13 @@ public:
 	* Description    :  Sets the size of the internal log buffer.
 	* Return         :  True = Successful execution, False = Error detected.
 	*/
-	bool SetLogBufferLimit(const size_t& size)
+	bool SetLogBufferSize(const size_t& size)
 	{
-		if (size <= LLOGGER_MAX_CHAR_LIMIT)
+		if (size <= LLOGGER_MAX_BUFFER_SIZE)
 			logBuffer.resize(size);
 		else
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to set buffer limit of %zd characters! The maximum is %zd.", __FUNCTION__, size, LLOGGER_MAX_CHAR_LIMIT);
+			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to set buffer limit of %zd characters! The maximum is %zd.", __FUNCTION__, size, LLOGGER_MAX_BUFFER_SIZE);
 			return false;
 		}
 
@@ -880,7 +879,7 @@ public:
 	* Description    :  Returns the size of the internal log buffer.
 	* Return         :  Log buffer size.
 	*/
-	size_t GetLogBufferLimit() const
+	size_t GetLogBufferSize() const
 	{
 		return logBuffer.size();
 	}
@@ -928,21 +927,17 @@ public:
 						}
 					}
 
-					//Get handle of current console first
-					GetConsoleScreenBufferInfo(ConsoleHandle, &consoleBufferInfo);
-					consoleAttr = consoleBufferInfo.wAttributes;
-
 					if (includePrefix)
 					{
 						SetConsoleTextAttribute(ConsoleHandle, logLevelColors[(uint8_t)level]);
-						printf("%s", LLogLevelPrefix[(uint8_t)level]);
+						fputs(LLogLevelPrefix[(uint8_t)level], stdout);
 					}
 
-					for (auto s : msg)
+					for (auto& s : msg)
 					{
 						if (s != nullptr && s[0] != '\0')
 						{
-							SetConsoleTextAttribute(ConsoleHandle, (colorIter == colorCode.end()) ? consoleAttr : (int)(*colorIter));
+							SetConsoleTextAttribute(ConsoleHandle, (colorIter == colorCode.end()) ? defaultConsoleAttr : (WORD)(*colorIter));
 							fputs(s, stdout);
 
 							if (logFile.is_open())
@@ -952,8 +947,8 @@ public:
 						if (colorIter != colorCode.end())
 							colorIter = std::next(colorIter);
 					}
-					SetConsoleTextAttribute(ConsoleHandle, consoleAttr);
-					printf("\n");
+					SetConsoleTextAttribute(ConsoleHandle, defaultConsoleAttr);
+					fputs("\n", stdout);
 
 					if (logFile.is_open())
 					{
@@ -1030,13 +1025,13 @@ public:
 					}
 
 					if (includePrefix)
-						printf("%s%s", logLevelColors[(uint8_t)level].c_str(), LLogLevelPrefix[(uint8_t)level]);
+						printf("%s%s", logLevelColors[(uint8_t)level], LLogLevelPrefix[(uint8_t)level]);
 
-					for (auto s : msg)
+					for (auto& s : msg)
 					{
 						if (s != nullptr && s[0] != '\0')
 						{
-							printf("%s", (colorIter == colorCode.end()) ? LLogColor::COLOR_RESET : *colorIter);
+							fputs((colorIter == colorCode.end()) ? LLogColor::COLOR_RESET : *colorIter, stdout);
 							fputs(s, stdout);
 
 							if (logFile.is_open())
@@ -1095,7 +1090,7 @@ public:
 			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
 			return false;
 		}
-
+		
 		if (format == nullptr || (format != nullptr && format[0] == '\0'))
 		{
 			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: An empty or invalid string has been entered! Ignoring this call...", __FUNCTION__);
@@ -1104,45 +1099,58 @@ public:
 
 		if (logLevel >= level)
 		{
-			std::va_list args;
+			va_list args;
 			va_start(args, format);			
-			size_t length = (size_t)vsnprintf(nullptr, 0, format, args);
+			size_t msgLen = (size_t)vsnprintf(nullptr, 0, format, args);
+			size_t prefixLen = (includePrefix) ? strlen(LLogLevelPrefix[(uint8_t)level]) : 0;
+			size_t colorCodeLen = 0;
+			size_t colorResetLen = 0;
+#ifdef IS_GNU
+			colorCodeLen = strlen(logLevelColors[(uint8_t)level]);
+			colorResetLen = strlen(LLogColor::COLOR_RESET);
+#endif
+			size_t sizeRequired = msgLen + prefixLen + colorCodeLen + colorResetLen + 2;  //+ 2 to account for "\n\0".
 
-			if (!CheckOrIncreaseBufferSize(length))
+			std::lock_guard<std::mutex> guard(logMutex);
+
+			if (!CheckOrIncreaseBufferSize(sizeRequired))	
 			{
 				va_end(args);
 				return false;
 			}
-
-			std::lock_guard<std::mutex> guard(logMutex);
-
+			
+			//Write formatted strings to the buffer.
+			char* buffPtr = &logBuffer[0];
+#ifdef IS_GNU
+				memcpy(buffPtr, logLevelColors[(uint8_t)level], colorCodeLen);
+				buffPtr += colorCodeLen;
+#endif
+			if (prefixLen > 0)
+			{
+				memcpy(buffPtr, LLogLevelPrefix[(uint8_t)level], prefixLen);
+				buffPtr += prefixLen;
+			}
 			va_start(args, format);
-			vsnprintf(&logBuffer[0], logBuffer.size(), format, args);
-			va_end(args);	
+			vsnprintf(buffPtr, msgLen + 1, format, args);
+			buffPtr += msgLen;
+			va_end(args);
+
+#ifdef IS_GNU
+			memcpy(buffPtr, LLogColor::COLOR_RESET, colorResetLen);
+			buffPtr += colorResetLen;
+			memcpy(buffPtr, "\n", 2);	// '\n' + '\0'
+#endif
 
 			switch (logType)
 			{
 				case LLogType::CONSOLE: case LLogType::CONSOLE_AND_FILE:
 #ifdef IS_MSVC
-					//Get handle of current console first
-					GetConsoleScreenBufferInfo(ConsoleHandle, &consoleBufferInfo);
-					consoleAttr = consoleBufferInfo.wAttributes;
-
 					SetConsoleTextAttribute(ConsoleHandle, logLevelColors[(uint8_t)level]);
-					if (includePrefix)
-						printf("%s", LLogLevelPrefix[(uint8_t)level]);
-
-					fputs(logBuffer.c_str(), stdout);
-					SetConsoleTextAttribute(ConsoleHandle, consoleAttr);
-					printf("\n");
+					fputs(logBuffer.data(), stdout);
+					SetConsoleTextAttribute(ConsoleHandle, defaultConsoleAttr);
+					fputs("\n", stdout);
 #else
-
-					printf("%s", logLevelColors[(uint8_t)level].c_str());
-					if (includePrefix)
-						printf("%s", LLogLevelPrefix[(uint8_t)level]);
-
-					fputs(logBuffer.c_str(), stdout);
-					printf("%s\n", LLogColor::COLOR_RESET);
+					fputs(logBuffer.data(), stdout);
 #endif
 					if (logType == LLogType::CONSOLE_AND_FILE)
 					{
@@ -1150,10 +1158,9 @@ public:
 
 						if (logFile.is_open())
 						{
-							if (includePrefix)
-								logFile << LLogLevelPrefix[(uint8_t)level];
-
-							logFile << logBuffer.c_str() << std::endl;
+							const char* ptr = &logBuffer[colorCodeLen];
+							logFile.write(ptr, prefixLen + msgLen);
+							logFile << std::endl;
 							logFile.close();
 						}
 						else
@@ -1165,10 +1172,9 @@ public:
 
 					if (logFile.is_open())
 					{
-						if (includePrefix)
-							logFile << LLogLevelPrefix[(uint8_t)level];
-
-						logFile << logBuffer.c_str() << std::endl;
+						const char* ptr = &logBuffer[colorCodeLen];
+						logFile.write(ptr, prefixLen + msgLen);
+						logFile << std::endl;
 						logFile.close();
 					}
 					else
@@ -1185,18 +1191,18 @@ private:
 	LLogger(const LLogger&) = delete;
 	LLogger& operator=(const LLogger&) = delete;
 	
-	LLogType                    logType;
-	LLogLevel                   logLevel;
+	std::vector<char>           logBuffer;
+	std::mutex                  logMutex;
+
 	std::string                 logFilePath;
 	std::ofstream               logFile;
 	LogLevelColorMap            logLevelColors;
 #ifdef IS_MSVC
-	CONSOLE_SCREEN_BUFFER_INFO  consoleBufferInfo;	//Windows Only
-	int                         consoleAttr;		//Windows only
-	std::mutex                  errorMutex;
+	std::mutex                  errMutex;
+	WORD                        defaultConsoleAttr;		//Windows only
 #endif
-	std::string                 logBuffer;
-	std::mutex                  logMutex;
+    LLogType                    logType;
+	LLogLevel                   logLevel;
 
 #ifdef IS_MSVC
 	/*
@@ -1205,23 +1211,20 @@ private:
 	*/
 	inline void PrintLoggerError(const LLogColor& colorCode, const char* format, ...)
 	{
-		char buffer[LLOGGER_ERR_CHAR_LIMIT];
+		char buffer[LLOGGER_ERR_BUFFER_SIZE];
 		memset(buffer, '\0', sizeof(buffer));
 
-		std::va_list args;
+		va_list args;
 		va_start(args, format);
 		vsnprintf(buffer, sizeof(buffer), format, args);
 		va_end(args);
 
-		std::lock_guard<std::mutex> guard(errorMutex);
-
-		//Get handle of current console first
-		GetConsoleScreenBufferInfo(ConsoleHandle, &consoleBufferInfo);
-		consoleAttr = consoleBufferInfo.wAttributes;
+		std::lock_guard<std::mutex> guard(errMutex);
 
 		SetConsoleTextAttribute(ConsoleHandle, (WORD)colorCode);
-		printf("[%s] %s\n", GetClassStr(), buffer);
-		SetConsoleTextAttribute(ConsoleHandle, consoleAttr);
+		printf("[%s] %s", GetClassStr(), buffer);
+		SetConsoleTextAttribute(ConsoleHandle, defaultConsoleAttr);
+		fputs("\n", stdout);
 	}
 #else
 	/*
@@ -1230,10 +1233,10 @@ private:
 	*/
 	inline void PrintLoggerError(const char* colorCode, const char* format, ...)
 	{
-		char buffer[LLOGGER_ERR_CHAR_LIMIT];
+		char buffer[LLOGGER_ERR_BUFFER_SIZE];
 		memset(buffer, '\0', sizeof(buffer));
 
-		std::va_list args;
+		va_list args;
 		va_start(args, format);
 		vsnprintf(buffer, sizeof(buffer), format, args);
 		va_end(args);
@@ -1248,15 +1251,15 @@ private:
 	*/
 	inline bool CheckOrIncreaseBufferSize(const size_t& setSize)
 	{
-		if (setSize > LLOGGER_MAX_CHAR_LIMIT)
+		if (setSize > LLOGGER_MAX_BUFFER_SIZE)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to set buffer limit of %zd characters! The maximum is %zd.", __FUNCTION__, setSize, LLOGGER_MAX_CHAR_LIMIT);
+			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to set buffer limit of %zd characters! The maximum is %zd.", __FUNCTION__, setSize, LLOGGER_MAX_BUFFER_SIZE);
 			return false;
 		}
-		else if (setSize > logBuffer.size() && setSize <= LLOGGER_MAX_CHAR_LIMIT)
+		else if (setSize > logBuffer.size() && setSize <= LLOGGER_MAX_BUFFER_SIZE)
 		{
 			size_t factor = setSize / LLOGGER_BUFFER_STEP_SIZE;
-			logBuffer.resize(minSizeOf((LLOGGER_BUFFER_STEP_SIZE * (factor + 1)) - 1, LLOGGER_MAX_CHAR_LIMIT));
+			logBuffer.resize(minSizeOf(LLOGGER_BUFFER_STEP_SIZE * (factor + 1), LLOGGER_MAX_BUFFER_SIZE));
 
 			return true;
 		}
