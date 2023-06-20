@@ -718,8 +718,8 @@ public:
 	}
 
 	/*
-	* Description    :  Returns the flag that determines if the log level is printed in log messages.
-	* Return         :  Log prefix flag.
+	* Description    :  Sets the flag that determines if the log level is printed in log messages.
+	* Return         :  
 	*/
     void SetShowLogPrefix(const bool& flag)
 	{
@@ -736,8 +736,8 @@ public:
 	}
 
 	/*
-	* Description    :  Returns the flag that determines if the timestamp is printed in log messages.
-	* Return         :  Timestamp flag.
+	* Description    :  Sets the flag that determines if the timestamp is printed in log messages.
+	* Return         :  
 	*/
     void SetShowTimeStamp(const bool& flag)
 	{
