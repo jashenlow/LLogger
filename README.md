@@ -41,17 +41,22 @@ int main(int argc, char** argv)
     logger.SetLogLevel(LLogLevel::LOG_INFO);
     logger.SetLogType(LLogType::CONSOLE_AND_FILE);
 
-    logger.LogLine(LLogLevel::LOG_FATAL, true, "This is a test log with prefix.");
-    logger.LogLine(LLogLevel::LOG_ERROR, true, "This is a test log with prefix.");
-    logger.LogLine(LLogLevel::LOG_WARN, true, "This is a test log with prefix.");
-    logger.LogLine(LLogLevel::LOG_INFO, true, "This is a test log with prefix.");
-    printf("\n");
-    logger.LogLine(LLogLevel::LOG_FATAL, false, "This is a test log without prefix.");
-    logger.LogLine(LLogLevel::LOG_ERROR, false, "This is a test log without prefix.");
-    logger.LogLine(LLogLevel::LOG_WARN, false, "This is a test log without prefix.");
-    logger.LogLine(LLogLevel::LOG_INFO, false, "This is a test log without prefix.");
+    logger.LogLine(LLogLevel::LOG_FATAL, "This is a test log with prefix.");
+    logger.LogLine(LLogLevel::LOG_ERROR, "This is a test log with prefix.");
+    logger.LogLine(LLogLevel::LOG_WARN, "This is a test log with prefix.");
+    logger.LogLine(LLogLevel::LOG_INFO, "This is a test log with prefix.");
     
-    logger.LogLineColors(LLogLevel::LOG_INFO, true, {"Red ", "Green ", "Blue"}, 
+    printf("\n");
+    logger.SetShowLogPrefix(false);
+
+    logger.LogLine(LLogLevel::LOG_FATAL, "This is a test log without prefix.");
+    logger.LogLine(LLogLevel::LOG_ERROR, "This is a test log without prefix.");
+    logger.LogLine(LLogLevel::LOG_WARN, "This is a test log without prefix.");
+    logger.LogLine(LLogLevel::LOG_INFO, "This is a test log without prefix.");
+    
+    logger.SetShowLogPrefix(true);
+
+    logger.LogLineColors(LLogLevel::LOG_INFO, {"Red ", "Green ", "Blue"}, 
         {LLogColor::INTENSE_RED_ON_BLACK, LLogColor::INTENSE_GREEN_ON_BLACK, LLogColor::INTENSE_BLUE_ON_BLACK});
 
     return 0;

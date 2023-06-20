@@ -24,6 +24,7 @@
 #ifndef _LLOGGER_H_
 #define _LLOGGER_H_
 
+#include <ctime>
 #include <fstream>
 #include <array>
 #include <vector>
@@ -618,6 +619,7 @@ constexpr size_t LLOGGER_MAX_BUFFER_SIZE        = 1073741824;  //1GB
 constexpr size_t LLOGGER_ERR_BUFFER_SIZE        = 128;
 constexpr size_t LLOGGER_DEFAULT_BUFFER_SIZE    = 128;
 constexpr size_t LLOGGER_BUFFER_STEP_SIZE       = 64;
+constexpr uint8_t TIMESTAMP_BUFF_LEN            = 10;
 
 enum class LLogType : uint8_t
 {
@@ -665,6 +667,8 @@ public:
 		logLevel    = LLogLevel::LOG_INFO;
 		logFilePath = LLOGGER_DEFAULT_FILE_PATH;
 		SetLogBufferSize(LLOGGER_DEFAULT_BUFFER_SIZE);
+		showPrefix    = true;
+		showTimeStamp = false;
 	}
 
 	/*
@@ -702,6 +706,42 @@ public:
 	const LLogType& GetLogType() const
 	{
 		return logType;
+	}
+
+	/*
+	* Description    :  Returns the flag that determines if the log level is printed in log messages.
+	* Return         :  Log prefix flag.
+	*/
+    bool GetShowLogPrefix() const
+	{
+		return showPrefix;
+	}
+
+	/*
+	* Description    :  Returns the flag that determines if the log level is printed in log messages.
+	* Return         :  Log prefix flag.
+	*/
+    void SetShowLogPrefix(const bool& flag)
+	{
+		showPrefix = flag;
+	}
+
+	/*
+	* Description    :  Returns the flag that determines if the timestamp is printed in log messages.
+	* Return         :  Timestamp flag.
+	*/
+    bool GetShowTimeStamp() const
+	{
+		return showTimeStamp;
+	}
+
+	/*
+	* Description    :  Returns the flag that determines if the timestamp is printed in log messages.
+	* Return         :  Timestamp flag.
+	*/
+    void SetShowTimeStamp(const bool& flag)
+	{
+		showTimeStamp = flag;
 	}
 
 	/*
@@ -889,7 +929,7 @@ public:
 	* Description    :  Logs the list of texts in argument "msg", and displays them in their respective colors defined by argument "colorCode".
 	* Return         :  True = Successful execution, False = Error detected.
 	*/
-	inline bool LogLineColors(const LLogLevel& level, bool includePrefix, const std::initializer_list<const char*>& msg, const std::initializer_list<LLogColor>& colorCode)
+	inline bool LogLineColors(const LLogLevel& level, const std::initializer_list<const char*>& msg, const std::initializer_list<LLogColor>& colorCode)
 	{
 		if (level == LLogLevel::LOG_OFF)
 			return false;
@@ -911,6 +951,10 @@ public:
 
 			auto colorIter = colorCode.begin();
 
+			char tsBuff[TIMESTAMP_BUFF_LEN];
+			if (showTimeStamp)
+				WriteTimeStampToBuffer(tsBuff);
+
 			switch (logType)
 			{
 				case LLogType::CONSOLE: case LLogType::CONSOLE_AND_FILE:
@@ -922,16 +966,15 @@ public:
 							PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
 						else
 						{
-							if (includePrefix)
+							if (showTimeStamp)
+								logFile << tsBuff;
+							if (showPrefix)
 								logFile << LLogLevelPrefix[(uint8_t)level];
 						}
 					}
 
-					if (includePrefix)
-					{
-						SetConsoleTextAttribute(ConsoleHandle, logLevelColors[(uint8_t)level]);
-						fputs(LLogLevelPrefix[(uint8_t)level], stdout);
-					}
+					SetConsoleTextAttribute(ConsoleHandle, logLevelColors[(uint8_t)level]);
+					printf("%s%s", (showTimeStamp) ? tsBuff : "", (showPrefix) ? LLogLevelPrefix[(uint8_t)level] : "");
 
 					for (auto& s : msg)
 					{
@@ -963,7 +1006,9 @@ public:
 						PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
 					else
 					{
-						if (includePrefix)
+						if (showTimeStamp)
+							logFile << tsBuff;
+						if (showPrefix)
 							logFile << LLogLevelPrefix[(uint8_t)level];
 
 						for (auto s : msg)
@@ -986,7 +1031,7 @@ public:
 	* Description    :  Logs the list of texts in argument "msg", and displays them in their respective colors defined by argument "colorCode".
 	* Return         :  True = Successful execution, False = Error detected.
 	*/
-	inline bool LogLineColors(const LLogLevel& level, bool includePrefix, const std::initializer_list<const char*>& msg, const std::initializer_list<const char*>& colorCode)
+	inline bool LogLineColors(const LLogLevel& level, const std::initializer_list<const char*>& msg, const std::initializer_list<const char*>& colorCode)
 	{
 		if (level == LLogLevel::LOG_OFF)
 			return false;
@@ -1008,6 +1053,10 @@ public:
 
 			auto colorIter = colorCode.begin();
 
+			char tsBuff[TIMESTAMP_BUFF_LEN];
+			if (showTimeStamp)
+				WriteTimeStampToBuffer(tsBuff);
+
 			switch (logType)
 			{
 				case LLogType::CONSOLE: case LLogType::CONSOLE_AND_FILE:
@@ -1019,13 +1068,14 @@ public:
 							PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
 						else
 						{
-							if (includePrefix)
+							if (showTimeStamp)
+								logFile << tsBuff;
+							if (showPrefix)
 								logFile << LLogLevelPrefix[(uint8_t)level];
 						}
 					}
 
-					if (includePrefix)
-						printf("%s%s", logLevelColors[(uint8_t)level], LLogLevelPrefix[(uint8_t)level]);
+					printf("%s%s%s", logLevelColors[(uint8_t)level], (showTimeStamp) ? tsBuff : "", (showPrefix) ? LLogLevelPrefix[(uint8_t)level] : "");
 
 					for (auto& s : msg)
 					{
@@ -1056,7 +1106,9 @@ public:
 						PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
 					else
 					{
-						if (includePrefix)
+						if (showTimeStamp)
+							logFile << tsBuff;
+						if (showPrefix)
 							logFile << LLogLevelPrefix[(uint8_t)level];
 
 						for (auto s : msg)
@@ -1081,7 +1133,7 @@ public:
 	*                :  NOTE: Formatting is exactly the same as calling printf.
 	* Return         :  True = Successful execution, False = Error detected.
 	*/
-	inline bool LogLine(const LLogLevel& level, bool includePrefix, const char* format, ...)
+	inline bool LogLine(const LLogLevel& level, const char* format, ...)
 	{
 		if (level == LLogLevel::LOG_OFF)
 			return false;
@@ -1102,14 +1154,15 @@ public:
 			va_list args;
 			va_start(args, format);			
 			size_t msgLen = (size_t)vsnprintf(nullptr, 0, format, args);
-			size_t prefixLen = (includePrefix) ? strlen(LLogLevelPrefix[(uint8_t)level]) : 0;
+			size_t prefixLen = (showPrefix) ? strlen(LLogLevelPrefix[(uint8_t)level]) : 0;
 			size_t colorCodeLen = 0;
 			size_t colorResetLen = 0;
+			uint8_t timestampLen = (showTimeStamp) ? TIMESTAMP_BUFF_LEN - 1 : 0;
 #ifdef IS_GNU
 			colorCodeLen = strlen(logLevelColors[(uint8_t)level]);
 			colorResetLen = strlen(LLogColor::COLOR_RESET);
 #endif
-			size_t sizeRequired = msgLen + prefixLen + colorCodeLen + colorResetLen + 2;  //+ 2 to account for "\n\0".
+			size_t sizeRequired = colorCodeLen + TIMESTAMP_BUFF_LEN + prefixLen + msgLen + colorResetLen + 2;  //+ 2 to account for "\n\0".
 
 			std::lock_guard<std::mutex> guard(logMutex);
 
@@ -1125,6 +1178,11 @@ public:
 				memcpy(buffPtr, logLevelColors[(uint8_t)level], colorCodeLen);
 				buffPtr += colorCodeLen;
 #endif
+			if (timestampLen > 0)
+			{
+				WriteTimeStampToBuffer(buffPtr);
+				buffPtr += timestampLen;
+			}
 			if (prefixLen > 0)
 			{
 				memcpy(buffPtr, LLogLevelPrefix[(uint8_t)level], prefixLen);
@@ -1159,7 +1217,7 @@ public:
 						if (logFile.is_open())
 						{
 							const char* ptr = &logBuffer[colorCodeLen];
-							logFile.write(ptr, prefixLen + msgLen);
+							logFile.write(ptr, timestampLen + prefixLen + msgLen);
 							logFile << std::endl;
 							logFile.close();
 						}
@@ -1173,7 +1231,7 @@ public:
 					if (logFile.is_open())
 					{
 						const char* ptr = &logBuffer[colorCodeLen];
-						logFile.write(ptr, prefixLen + msgLen);
+						logFile.write(ptr, timestampLen + prefixLen + msgLen);
 						logFile << std::endl;
 						logFile.close();
 					}
@@ -1191,18 +1249,20 @@ private:
 	LLogger(const LLogger&) = delete;
 	LLogger& operator=(const LLogger&) = delete;
 	
-	std::vector<char>           logBuffer;
-	std::mutex                  logMutex;
+	std::vector<char> logBuffer;
+	std::mutex        logMutex;
 
-	std::string                 logFilePath;
-	std::ofstream               logFile;
-	LogLevelColorMap            logLevelColors;
+	std::string       logFilePath;
+	std::ofstream     logFile;
+	LogLevelColorMap  logLevelColors;
 #ifdef IS_MSVC
-	std::mutex                  errMutex;
-	WORD                        defaultConsoleAttr;		//Windows only
+	std::mutex        errMutex;
+	WORD              defaultConsoleAttr;
 #endif
-    LLogType                    logType;
-	LLogLevel                   logLevel;
+    LLogType          logType;
+	LLogLevel         logLevel;
+	bool              showPrefix;
+	bool              showTimeStamp;
 
 #ifdef IS_MSVC
 	/*
@@ -1265,6 +1325,16 @@ private:
 		}
 		else
 			return true;
+	}
+
+	/*
+	* Description    :  Writes a formatted string of the current system time to a buffer specified in the argument.
+	* Return         :  
+	*/
+	void WriteTimeStampToBuffer(char* buff)
+	{
+		std::time_t timenow = std::time(nullptr);
+		std::strftime(buff, TIMESTAMP_BUFF_LEN, "%H:%M:%S ", std::localtime(&timenow)); //Added a space at the end of the formatted string. 
 	}
 
 	//This function is declared for the purpose of avoiding the min/max macro compatibility issue across different compilers.

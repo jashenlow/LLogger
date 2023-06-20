@@ -70,8 +70,8 @@ TEST(ClearLogFile, ClearLogFileTest)
     LLogger logger;
 
     logger.SetLogType(LLogType::FILE);
-    logger.LogLine(LLogLevel::LOG_INFO, true, "This is a test logging sentnece.");
-    logger.LogLine(LLogLevel::LOG_WARN, true, "Test print numbers (%d, %d, %d).", 1, 2, 3);
+    logger.LogLine(LLogLevel::LOG_INFO, "This is a test logging sentnece.");
+    logger.LogLine(LLogLevel::LOG_WARN, "Test print numbers (%d, %d, %d).", 1, 2, 3);
     
     std::ifstream logFile;
     std::stringstream logFileText;
@@ -246,7 +246,7 @@ TEST(LogLine, validString)
     LLogger logger;
     std::string testStr("This is a test print string.");
 
-    EXPECT_TRUE(logger.LogLine(LLogLevel::LOG_INFO, true, testStr.c_str()));
+    EXPECT_TRUE(logger.LogLine(LLogLevel::LOG_INFO, testStr.c_str()));
 }
 
 TEST(LogLine, bufferResize)
@@ -254,7 +254,7 @@ TEST(LogLine, bufferResize)
     LLogger logger;
     std::string testStr(LLOGGER_DEFAULT_BUFFER_SIZE + 1, 'a');
 
-    bool res = logger.LogLine(LLogLevel::LOG_INFO, true, testStr.c_str());
+    bool res = logger.LogLine(LLogLevel::LOG_INFO, testStr.c_str());
 
     EXPECT_TRUE(res && logger.GetLogBufferSize() == (LLOGGER_DEFAULT_BUFFER_SIZE + LLOGGER_BUFFER_STEP_SIZE));
 }
@@ -264,21 +264,21 @@ TEST(LogLine, LOG_OFF)
     LLogger logger;
     std::string testStr("This is a test print string.");
 
-    EXPECT_FALSE(logger.LogLine(LLogLevel::LOG_OFF, true, testStr.c_str()));
+    EXPECT_FALSE(logger.LogLine(LLogLevel::LOG_OFF, testStr.c_str()));
 }
 
 TEST(LogLine, nullptrString)
 {
     LLogger logger;
 
-    EXPECT_FALSE(logger.LogLine(LLogLevel::LOG_INFO, true, nullptr));
+    EXPECT_FALSE(logger.LogLine(LLogLevel::LOG_INFO, nullptr));
 }
 
 TEST(LogLine, emptyString)
 {
     LLogger logger;
 
-    EXPECT_FALSE(logger.LogLine(LLogLevel::LOG_INFO, true, ""));
+    EXPECT_FALSE(logger.LogLine(LLogLevel::LOG_INFO, ""));
 }
 
 TEST(LogLine, includePrefix)
@@ -286,7 +286,8 @@ TEST(LogLine, includePrefix)
     LLogger logger;
 
     logger.SetLogType(LLogType::CONSOLE_AND_FILE);
-    bool res = logger.LogLine(LLogLevel::LOG_INFO, true, "This is a test print string.");
+    logger.SetShowLogPrefix(true);
+    bool res = logger.LogLine(LLogLevel::LOG_INFO, "This is a test print string.");
 
     std::ifstream logFile;
     logFile.open(logger.GetLogFilePath());
@@ -307,7 +308,8 @@ TEST(LogLine, excludePrefix)
     LLogger logger;
 
     logger.SetLogType(LLogType::CONSOLE_AND_FILE);
-    bool res = logger.LogLine(LLogLevel::LOG_INFO, false, "This is a test print string.");
+    logger.SetShowLogPrefix(false);
+    bool res = logger.LogLine(LLogLevel::LOG_INFO, "This is a test print string.");
 
     std::ifstream logFile;
     logFile.open(logger.GetLogFilePath());
