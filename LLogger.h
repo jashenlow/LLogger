@@ -669,7 +669,7 @@ public:
 	}
 
 	/*
-	* Description    :  Default constructor. Initializes all default settings.
+	* Description    :  Overload constructor, which initializes various variables upon construction.
 	* Return         :
 	*/
 	LLogger(const LLogType& type, const LLogLevel& level, bool prefix = true, bool timestamp = false)
