@@ -5,6 +5,7 @@ A simple and lightweight C++ console logger.
 - C++11 and above.
 - Cross-platform (Windows/Mac/Linux)
 - Thread-safe
+- Fast, minimizes unnecessary string formatting calls.
 ## Information
 
 Logging Types:
@@ -57,7 +58,7 @@ int main(int argc, char** argv)
     logger.SetShowLogPrefix(true);
 
     logger.LogLineColors(LLogLevel::LOG_INFO, {"Red ", "Green ", "Blue"}, 
-        {LLogColor::INTENSE_RED_ON_BLACK, LLogColor::INTENSE_GREEN_ON_BLACK, LLogColor::INTENSE_BLUE_ON_BLACK});
+        {LLogColor::BOLD_RED_ON_BLACK, LLogColor::BOLD_GREEN_ON_BLACK, LLogColor::BOLD_BLUE_ON_BLACK});
 
     return 0;
 }
