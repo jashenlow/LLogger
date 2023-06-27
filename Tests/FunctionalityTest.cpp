@@ -145,12 +145,12 @@ TEST(LogLevelColor, validInput)
     LLogLevel setLogLevel = LLogLevel::LOG_WARN;
     
 #ifdef IS_MSVC
-    LLogColor newColorCode = LLogColor::INTENSE_MAGENTA_ON_BLACK;
+    LLogColor newColorCode = LLogColor::BOLD_MAGENTA_ON_BLACK;
 
     bool res = logger.SetLogLevelColor(setLogLevel, newColorCode);
     EXPECT_TRUE(res && logger.GetLogLevelColor(setLogLevel) == newColorCode);
 #else
-    auto newColorCode = LLogColor::INTENSE_MAGENTA_ON_BLACK;
+    auto newColorCode = LLogColor::BOLD_MAGENTA_ON_BLACK;
 
     bool res = logger.SetLogLevelColor(setLogLevel, newColorCode);
     EXPECT_TRUE(res && strcmp(logger.GetLogLevelColor(setLogLevel), newColorCode) == 0);
@@ -162,12 +162,12 @@ TEST(LogLevelColor, zeroLogLevel)
     LLogger logger;
 
 #ifdef IS_MSVC
-    LLogColor newColorCode = LLogColor::INTENSE_MAGENTA_ON_BLACK;
+    LLogColor newColorCode = LLogColor::BOLD_MAGENTA_ON_BLACK;
 
     bool res = logger.SetLogLevelColor((LLogLevel)0, newColorCode);
     EXPECT_TRUE(!res && logger.GetLogLevelColor((LLogLevel)0) != newColorCode);
 #else
-    auto newColorCode = LLogColor::INTENSE_MAGENTA_ON_BLACK;
+    auto newColorCode = LLogColor::BOLD_MAGENTA_ON_BLACK;
 
     bool res = logger.SetLogLevelColor((LLogLevel)0, newColorCode);
     EXPECT_TRUE(!res && strcmp(logger.GetLogLevelColor((LLogLevel)0), newColorCode) != 0);
@@ -179,12 +179,12 @@ TEST(LogLevelColor, tooLargeLogLevel)
     LLogger logger;
 
 #ifdef IS_MSVC
-    LLogColor newColorCode = LLogColor::INTENSE_MAGENTA_ON_BLACK;
+    LLogColor newColorCode = LLogColor::BOLD_MAGENTA_ON_BLACK;
 
     bool res = logger.SetLogLevelColor((LLogLevel)0, newColorCode);
     EXPECT_TRUE(!res && logger.GetLogLevelColor((LLogLevel)5) != newColorCode);
 #else
-    auto newColorCode = LLogColor::INTENSE_MAGENTA_ON_BLACK;
+    auto newColorCode = LLogColor::BOLD_MAGENTA_ON_BLACK;
 
     bool res = logger.SetLogLevelColor((LLogLevel)0, newColorCode);
     EXPECT_TRUE(!res && strcmp(logger.GetLogLevelColor((LLogLevel)6), newColorCode) != 0);
