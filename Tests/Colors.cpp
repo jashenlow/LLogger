@@ -4,9 +4,12 @@ int main(int argc, char** argv)
 {
     LLogger logger;
 
-    //logger.SetLogType(LLogType::CONSOLE_AND_FILE);
+    logger.SetLogType(LLogType::CONSOLE_AND_FILE);
     //logger.SetShowLogPrefix(false);
-    //logger.SetShowTimeStamp(true);
+    logger.SetShowTimeStamp(true);
+
+    if (logger.GetLogType() != LLogType::CONSOLE)
+        logger.ClearLogFile();
     
     logger.LogLineColors(LLogLevel::LOG_INFO, {"RED_ON_GREEN"}, {LLogColor::RED_ON_GREEN});
     logger.LogLineColors(LLogLevel::LOG_INFO, {"RED_ON_BLUE"}, {LLogColor::RED_ON_BLUE});

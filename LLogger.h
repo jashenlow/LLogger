@@ -42,7 +42,7 @@
 #include <Windows.h>
 #include <wincon.h>
 
-enum class LLogColor : uint16_t
+enum LLogColor : uint8_t
 {
 	//Foreground only
 	FOREGROUND_WHITE			= (FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN),
@@ -301,7 +301,7 @@ enum class LLogColor : uint16_t
 
 #define ConsoleHandle GetStdHandle(STD_OUTPUT_HANDLE)
 
-typedef std::array<uint16_t, 5> LogLevelColorMap;  //<Level, colorCode>
+typedef uint8_t LLogColorCode;
 
 #elif defined(__GNUC__)
 #ifndef IS_GNU
@@ -314,307 +314,307 @@ typedef std::array<uint16_t, 5> LogLevelColorMap;  //<Level, colorCode>
 namespace LLogColor
 {
 	//Foreground only
-	constexpr const char* FOREGROUND_RED				= "\033[0;31m";
-	constexpr const char* FOREGROUND_GREEN				= "\033[0;32m";
-	constexpr const char* FOREGROUND_BLUE				= "\033[0;34m";
-	constexpr const char* FOREGROUND_WHITE				= "\033[0;37m";
-	constexpr const char* FOREGROUND_YELLOW				= "\033[0;33m";
-	constexpr const char* FOREGROUND_CYAN				= "\033[0;36m";
-	constexpr const char* FOREGROUND_MAGENTA			= "\033[0;35m";
-	constexpr const char* FOREGROUND_BLACK				= "\033[0;30m";
+	constexpr char FOREGROUND_RED[]				= "\033[0;31m";
+	constexpr char FOREGROUND_GREEN[]				= "\033[0;32m";
+	constexpr char FOREGROUND_BLUE[]				= "\033[0;34m";
+	constexpr char FOREGROUND_WHITE[]				= "\033[0;37m";
+	constexpr char FOREGROUND_YELLOW[]				= "\033[0;33m";
+	constexpr char FOREGROUND_CYAN[]				= "\033[0;36m";
+	constexpr char FOREGROUND_MAGENTA[]			= "\033[0;35m";
+	constexpr char FOREGROUND_BLACK[]				= "\033[0;30m";
 
-	constexpr const char* FOREGROUND_INTENSE_RED		= "\033[0;91m";
-	constexpr const char* FOREGROUND_INTENSE_GREEN		= "\033[0;92m";
-	constexpr const char* FOREGROUND_INTENSE_BLUE		= "\033[0;94m";
-	constexpr const char* FOREGROUND_INTENSE_WHITE		= "\033[0;97m";
-	constexpr const char* FOREGROUND_INTENSE_YELLOW		= "\033[0;93m";
-	constexpr const char* FOREGROUND_INTENSE_CYAN		= "\033[0;96m";
-	constexpr const char* FOREGROUND_INTENSE_MAGENTA	= "\033[0;95m";
-	constexpr const char* FOREGROUND_INTENSE_BLACK		= "\033[0;90m";
+	constexpr char FOREGROUND_INTENSE_RED[]		= "\033[0;91m";
+	constexpr char FOREGROUND_INTENSE_GREEN[]	= "\033[0;92m";
+	constexpr char FOREGROUND_INTENSE_BLUE[]		= "\033[0;94m";
+	constexpr char FOREGROUND_INTENSE_WHITE[]		= "\033[0;97m";
+	constexpr char FOREGROUND_INTENSE_YELLOW[]		= "\033[0;93m";
+	constexpr char FOREGROUND_INTENSE_CYAN[]		= "\033[0;96m";
+	constexpr char FOREGROUND_INTENSE_MAGENTA[]	= "\033[0;95m";
+	constexpr char FOREGROUND_INTENSE_BLACK[]		= "\033[0;90m";
 
 	//Background only
-	constexpr const char* BACKGROUND_RED				= "\033[41m";
-	constexpr const char* BACKGROUND_GREEN				= "\033[42m";
-	constexpr const char* BACKGROUND_BLUE				= "\033[44m";
-	constexpr const char* BACKGROUND_WHITE				= "\033[47m";
-	constexpr const char* BACKGROUND_YELLOW				= "\033[43m";
-	constexpr const char* BACKGROUND_CYAN				= "\033[46m";
-	constexpr const char* BACKGROUND_MAGENTA			= "\033[45m";
-	constexpr const char* BACKGROUND_BLACK				= "\033[40m";
+	constexpr char BACKGROUND_RED[]				= "\033[41m";
+	constexpr char BACKGROUND_GREEN[]				= "\033[42m";
+	constexpr char BACKGROUND_BLUE[]				= "\033[44m";
+	constexpr char BACKGROUND_WHITE[]				= "\033[47m";
+	constexpr char BACKGROUND_YELLOW[]				= "\033[43m";
+	constexpr char BACKGROUND_CYAN[]				= "\033[46m";
+	constexpr char BACKGROUND_MAGENTA[]			= "\033[45m";
+	constexpr char BACKGROUND_BLACK[]				= "\033[40m";
 
-	constexpr const char* BACKGROUND_INTENSE_RED		= "\033[101m";
-	constexpr const char* BACKGROUND_INTENSE_GREEN		= "\033[102m";
-	constexpr const char* BACKGROUND_INTENSE_BLUE		= "\033[104m";
-	constexpr const char* BACKGROUND_INTENSE_WHITE		= "\033[107m";
-	constexpr const char* BACKGROUND_INTENSE_YELLOW		= "\033[103m";
-	constexpr const char* BACKGROUND_INTENSE_CYAN		= "\033[106m";
-	constexpr const char* BACKGROUND_INTENSE_MAGENTA	= "\033[105m";
-	constexpr const char* BACKGROUND_INTENSE_BLACK		= "\033[100m";
+	constexpr char BACKGROUND_INTENSE_RED[]		= "\033[101m";
+	constexpr char BACKGROUND_INTENSE_GREEN[]		= "\033[102m";
+	constexpr char BACKGROUND_INTENSE_BLUE[]		= "\033[104m";
+	constexpr char BACKGROUND_INTENSE_WHITE[]		= "\033[107m";
+	constexpr char BACKGROUND_INTENSE_YELLOW[]		= "\033[103m";
+	constexpr char BACKGROUND_INTENSE_CYAN[]		= "\033[106m";
+	constexpr char BACKGROUND_INTENSE_MAGENTA[]	= "\033[105m";
+	constexpr char BACKGROUND_INTENSE_BLACK[]		= "\033[100m";
 
 	//Foreground and Background
-	constexpr const char* RED_ON_GREEN					= "\033[31;42m";
-	constexpr const char* RED_ON_BLUE					= "\033[31;44m";
-	constexpr const char* RED_ON_WHITE					= "\033[31;47m";
-	constexpr const char* RED_ON_YELLOW					= "\033[31;43m";
-	constexpr const char* RED_ON_CYAN					= "\033[31;46m";
-	constexpr const char* RED_ON_MAGENTA				= "\033[31;45m";
-	constexpr const char* RED_ON_BLACK					= "\033[31;40m";
-	constexpr const char* RED_ON_INTENSE_RED			= "\033[31;101m";
-	constexpr const char* RED_ON_INTENSE_GREEN			= "\033[31;102m";
-	constexpr const char* RED_ON_INTENSE_BLUE			= "\033[31;104m";
-	constexpr const char* RED_ON_INTENSE_WHITE			= "\033[31;107m";
-	constexpr const char* RED_ON_INTENSE_YELLOW			= "\033[31;103m";
-	constexpr const char* RED_ON_INTENSE_CYAN			= "\033[31;106m";
-	constexpr const char* RED_ON_INTENSE_MAGENTA		= "\033[31;105m";
-	constexpr const char* RED_ON_INTENSE_BLACK			= "\033[31;100m";
+	constexpr char RED_ON_GREEN[]					= "\033[31;42m";
+	constexpr char RED_ON_BLUE[]					= "\033[31;44m";
+	constexpr char RED_ON_WHITE[]					= "\033[31;47m";
+	constexpr char RED_ON_YELLOW[]					= "\033[31;43m";
+	constexpr char RED_ON_CYAN[]					= "\033[31;46m";
+	constexpr char RED_ON_MAGENTA[]				= "\033[31;45m";
+	constexpr char RED_ON_BLACK[]					= "\033[31;40m";
+	constexpr char RED_ON_INTENSE_RED[]			= "\033[31;101m";
+	constexpr char RED_ON_INTENSE_GREEN[]			= "\033[31;102m";
+	constexpr char RED_ON_INTENSE_BLUE[]			= "\033[31;104m";
+	constexpr char RED_ON_INTENSE_WHITE[]			= "\033[31;107m";
+	constexpr char RED_ON_INTENSE_YELLOW[]			= "\033[31;103m";
+	constexpr char RED_ON_INTENSE_CYAN[]			= "\033[31;106m";
+	constexpr char RED_ON_INTENSE_MAGENTA[]		= "\033[31;105m";
+	constexpr char RED_ON_INTENSE_BLACK[]			= "\033[31;100m";
 
-	constexpr const char* GREEN_ON_RED					= "\033[32;41m";
-	constexpr const char* GREEN_ON_BLUE					= "\033[32;44m";
-	constexpr const char* GREEN_ON_WHITE				= "\033[32;47m";
-	constexpr const char* GREEN_ON_YELLOW				= "\033[32;43m";
-	constexpr const char* GREEN_ON_CYAN					= "\033[32;46m";
-	constexpr const char* GREEN_ON_MAGENTA				= "\033[32;45m";
-	constexpr const char* GREEN_ON_BLACK				= "\033[32;40m";
-	constexpr const char* GREEN_ON_INTENSE_RED			= "\033[32;101m";
-	constexpr const char* GREEN_ON_INTENSE_GREEN		= "\033[32;102m";
-	constexpr const char* GREEN_ON_INTENSE_BLUE			= "\033[32;104m";
-	constexpr const char* GREEN_ON_INTENSE_WHITE		= "\033[32;107m";
-	constexpr const char* GREEN_ON_INTENSE_YELLOW		= "\033[32;103m";
-	constexpr const char* GREEN_ON_INTENSE_CYAN			= "\033[32;106m";
-	constexpr const char* GREEN_ON_INTENSE_MAGENTA		= "\033[32;105m";
-	constexpr const char* GREEN_ON_INTENSE_BLACK		= "\033[32;100m";
+	constexpr char GREEN_ON_RED[]					= "\033[32;41m";
+	constexpr char GREEN_ON_BLUE[]					= "\033[32;44m";
+	constexpr char GREEN_ON_WHITE[]				= "\033[32;47m";
+	constexpr char GREEN_ON_YELLOW[]				= "\033[32;43m";
+	constexpr char GREEN_ON_CYAN[]					= "\033[32;46m";
+	constexpr char GREEN_ON_MAGENTA[]			= "\033[32;45m";
+	constexpr char GREEN_ON_BLACK[]				= "\033[32;40m";
+	constexpr char GREEN_ON_INTENSE_RED[]			= "\033[32;101m";
+	constexpr char GREEN_ON_INTENSE_GREEN[]		= "\033[32;102m";
+	constexpr char GREEN_ON_INTENSE_BLUE[]			= "\033[32;104m";
+	constexpr char GREEN_ON_INTENSE_WHITE[]		= "\033[32;107m";
+	constexpr char GREEN_ON_INTENSE_YELLOW[]		= "\033[32;103m";
+	constexpr char GREEN_ON_INTENSE_CYAN[]			= "\033[32;106m";
+	constexpr char GREEN_ON_INTENSE_MAGENTA[]		= "\033[32;105m";
+	constexpr char GREEN_ON_INTENSE_BLACK[]		= "\033[32;100m";
 
-	constexpr const char* BLUE_ON_RED					= "\033[34;41m";
-	constexpr const char* BLUE_ON_GREEN					= "\033[34;42m";
-	constexpr const char* BLUE_ON_WHITE					= "\033[34;47m";
-	constexpr const char* BLUE_ON_YELLOW				= "\033[34;43m";
-	constexpr const char* BLUE_ON_CYAN					= "\033[34;46m";
-	constexpr const char* BLUE_ON_MAGENTA				= "\033[34;45m";
-	constexpr const char* BLUE_ON_BLACK					= "\033[34;40m";
-	constexpr const char* BLUE_ON_INTENSE_RED			= "\033[34;101m";
-	constexpr const char* BLUE_ON_INTENSE_GREEN			= "\033[34;102m";
-	constexpr const char* BLUE_ON_INTENSE_BLUE			= "\033[34;104m";
-	constexpr const char* BLUE_ON_INTENSE_WHITE			= "\033[34;107m";
-	constexpr const char* BLUE_ON_INTENSE_YELLOW		= "\033[34;103m";
-	constexpr const char* BLUE_ON_INTENSE_CYAN			= "\033[34;106m";
-	constexpr const char* BLUE_ON_INTENSE_MAGENTA		= "\033[34;105m";
-	constexpr const char* BLUE_ON_INTENSE_BLACK			= "\033[34;100m";
+	constexpr char BLUE_ON_RED[]					= "\033[34;41m";
+	constexpr char BLUE_ON_GREEN[]					= "\033[34;42m";
+	constexpr char BLUE_ON_WHITE[]					= "\033[34;47m";
+	constexpr char BLUE_ON_YELLOW[]				= "\033[34;43m";
+	constexpr char BLUE_ON_CYAN[]				= "\033[34;46m";
+	constexpr char BLUE_ON_MAGENTA[]				= "\033[34;45m";
+	constexpr char BLUE_ON_BLACK[]					= "\033[34;40m";
+	constexpr char BLUE_ON_INTENSE_RED[]			= "\033[34;101m";
+	constexpr char BLUE_ON_INTENSE_GREEN[]			= "\033[34;102m";
+	constexpr char BLUE_ON_INTENSE_BLUE[]			= "\033[34;104m";
+	constexpr char BLUE_ON_INTENSE_WHITE[]			= "\033[34;107m";
+	constexpr char BLUE_ON_INTENSE_YELLOW[]		= "\033[34;103m";
+	constexpr char BLUE_ON_INTENSE_CYAN[]			= "\033[34;106m";
+	constexpr char BLUE_ON_INTENSE_MAGENTA[]		= "\033[34;105m";
+	constexpr char BLUE_ON_INTENSE_BLACK[]			= "\033[34;100m";
 
-	constexpr const char* WHITE_ON_RED					= "\033[37;41m";
-	constexpr const char* WHITE_ON_GREEN				= "\033[37;42m";
-	constexpr const char* WHITE_ON_BLUE					= "\033[37;44m";
-	constexpr const char* WHITE_ON_YELLOW				= "\033[37;43m";
-	constexpr const char* WHITE_ON_CYAN					= "\033[37;46m";
-	constexpr const char* WHITE_ON_MAGENTA				= "\033[37;45m";
-	constexpr const char* WHITE_ON_BLACK				= "\033[37;40m";
-	constexpr const char* WHITE_ON_INTENSE_RED			= "\033[37;101m";
-	constexpr const char* WHITE_ON_INTENSE_GREEN		= "\033[37;102m";
-	constexpr const char* WHITE_ON_INTENSE_BLUE			= "\033[37;104m";
-	constexpr const char* WHITE_ON_INTENSE_WHITE		= "\033[37;107m";
-	constexpr const char* WHITE_ON_INTENSE_YELLOW		= "\033[37;103m";
-	constexpr const char* WHITE_ON_INTENSE_CYAN			= "\033[37;106m";
-	constexpr const char* WHITE_ON_INTENSE_MAGENTA		= "\033[37;105m";
-	constexpr const char* WHITE_ON_INTENSE_BLACK		= "\033[37;100m";
+	constexpr char WHITE_ON_RED[]					= "\033[37;41m";
+	constexpr char WHITE_ON_GREEN[]				= "\033[37;42m";
+	constexpr char WHITE_ON_BLUE[]					= "\033[37;44m";
+	constexpr char WHITE_ON_YELLOW[]				= "\033[37;43m";
+	constexpr char WHITE_ON_CYAN[]					= "\033[37;46m";
+	constexpr char WHITE_ON_MAGENTA[]				= "\033[37;45m";
+	constexpr char WHITE_ON_BLACK[]				= "\033[37;40m";
+	constexpr char WHITE_ON_INTENSE_RED[]			= "\033[37;101m";
+	constexpr char WHITE_ON_INTENSE_GREEN[]		= "\033[37;102m";
+	constexpr char WHITE_ON_INTENSE_BLUE[]			= "\033[37;104m";
+	constexpr char WHITE_ON_INTENSE_WHITE[]		= "\033[37;107m";
+	constexpr char WHITE_ON_INTENSE_YELLOW[]		= "\033[37;103m";
+	constexpr char WHITE_ON_INTENSE_CYAN[]			= "\033[37;106m";
+	constexpr char WHITE_ON_INTENSE_MAGENTA[]		= "\033[37;105m";
+	constexpr char WHITE_ON_INTENSE_BLACK[]		= "\033[37;100m";
 	
-	constexpr const char* YELLOW_ON_RED					= "\033[33;41m";
-	constexpr const char* YELLOW_ON_GREEN				= "\033[33;42m";
-	constexpr const char* YELLOW_ON_BLUE				= "\033[33;44m";
-	constexpr const char* YELLOW_ON_WHITE				= "\033[33;47m";
-	constexpr const char* YELLOW_ON_CYAN				= "\033[33;46m";
-	constexpr const char* YELLOW_ON_MAGENTA				= "\033[33;45m";
-	constexpr const char* YELLOW_ON_BLACK				= "\033[33;40m";
-	constexpr const char* YELLOW_ON_INTENSE_RED			= "\033[33;101m";
-	constexpr const char* YELLOW_ON_INTENSE_GREEN		= "\033[33;102m";
-	constexpr const char* YELLOW_ON_INTENSE_BLUE		= "\033[33;104m";
-	constexpr const char* YELLOW_ON_INTENSE_WHITE		= "\033[33;107m";
-	constexpr const char* YELLOW_ON_INTENSE_YELLOW		= "\033[33;103m";
-	constexpr const char* YELLOW_ON_INTENSE_CYAN		= "\033[33;106m";
-	constexpr const char* YELLOW_ON_INTENSE_MAGENTA		= "\033[33;105m";
-	constexpr const char* YELLOW_ON_INTENSE_BLACK		= "\033[33;100m";
+	constexpr char YELLOW_ON_RED[]					= "\033[33;41m";
+	constexpr char YELLOW_ON_GREEN[]				= "\033[33;42m";
+	constexpr char YELLOW_ON_BLUE[]				= "\033[33;44m";
+	constexpr char YELLOW_ON_WHITE[]				= "\033[33;47m";
+	constexpr char YELLOW_ON_CYAN[]				= "\033[33;46m";
+	constexpr char YELLOW_ON_MAGENTA[]				= "\033[33;45m";
+	constexpr char YELLOW_ON_BLACK[]				= "\033[33;40m";
+	constexpr char YELLOW_ON_INTENSE_RED[]			= "\033[33;101m";
+	constexpr char YELLOW_ON_INTENSE_GREEN[]		= "\033[33;102m";
+	constexpr char YELLOW_ON_INTENSE_BLUE[]		= "\033[33;104m";
+	constexpr char YELLOW_ON_INTENSE_WHITE[]		= "\033[33;107m";
+	constexpr char YELLOW_ON_INTENSE_YELLOW[]	= "\033[33;103m";
+	constexpr char YELLOW_ON_INTENSE_CYAN[]		= "\033[33;106m";
+	constexpr char YELLOW_ON_INTENSE_MAGENTA[]		= "\033[33;105m";
+	constexpr char YELLOW_ON_INTENSE_BLACK[]		= "\033[33;100m";
 
-	constexpr const char* CYAN_ON_RED					= "\033[36;41m";
-	constexpr const char* CYAN_ON_GREEN					= "\033[36;42m";
-	constexpr const char* CYAN_ON_BLUE					= "\033[36;44m";
-	constexpr const char* CYAN_ON_WHITE					= "\033[36;47m";
-	constexpr const char* CYAN_ON_YELLOW				= "\033[36;43m";
-	constexpr const char* CYAN_ON_MAGENTA				= "\033[36;45m";
-	constexpr const char* CYAN_ON_BLACK					= "\033[36;40m";
-	constexpr const char* CYAN_ON_INTENSE_RED			= "\033[36;101m";
-	constexpr const char* CYAN_ON_INTENSE_GREEN			= "\033[36;102m";
-	constexpr const char* CYAN_ON_INTENSE_BLUE			= "\033[36;104m";
-	constexpr const char* CYAN_ON_INTENSE_WHITE			= "\033[36;107m";
-	constexpr const char* CYAN_ON_INTENSE_YELLOW		= "\033[36;103m";
-	constexpr const char* CYAN_ON_INTENSE_CYAN			= "\033[36;106m";
-	constexpr const char* CYAN_ON_INTENSE_MAGENTA		= "\033[36;105m";
-	constexpr const char* CYAN_ON_INTENSE_BLACK			= "\033[36;100m";
+	constexpr char CYAN_ON_RED[]					= "\033[36;41m";
+	constexpr char CYAN_ON_GREEN[]					= "\033[36;42m";
+	constexpr char CYAN_ON_BLUE[]					= "\033[36;44m";
+	constexpr char CYAN_ON_WHITE[]					= "\033[36;47m";
+	constexpr char CYAN_ON_YELLOW[]				= "\033[36;43m";
+	constexpr char CYAN_ON_MAGENTA[]				= "\033[36;45m";
+	constexpr char CYAN_ON_BLACK[]					= "\033[36;40m";
+	constexpr char CYAN_ON_INTENSE_RED[]			= "\033[36;101m";
+	constexpr char CYAN_ON_INTENSE_GREEN[]			= "\033[36;102m";
+	constexpr char CYAN_ON_INTENSE_BLUE[]			= "\033[36;104m";
+	constexpr char CYAN_ON_INTENSE_WHITE[]			= "\033[36;107m";
+	constexpr char CYAN_ON_INTENSE_YELLOW[]		= "\033[36;103m";
+	constexpr char CYAN_ON_INTENSE_CYAN[]			= "\033[36;106m";
+	constexpr char CYAN_ON_INTENSE_MAGENTA[]		= "\033[36;105m";
+	constexpr char CYAN_ON_INTENSE_BLACK[]			= "\033[36;100m";
 
-	constexpr const char* MAGENTA_ON_RED				= "\033[35;41m";
-	constexpr const char* MAGENTA_ON_GREEN				= "\033[35;42m";
-	constexpr const char* MAGENTA_ON_BLUE				= "\033[35;44m";
-	constexpr const char* MAGENTA_ON_WHITE				= "\033[35;47m";
-	constexpr const char* MAGENTA_ON_YELLOW				= "\033[35;43m";
-	constexpr const char* MAGENTA_ON_CYAN				= "\033[35;46m";
-	constexpr const char* MAGENTA_ON_BLACK				= "\033[35;40m";
-	constexpr const char* MAGENTA_ON_INTENSE_RED		= "\033[35;101m";
-	constexpr const char* MAGENTA_ON_INTENSE_GREEN		= "\033[35;102m";
-	constexpr const char* MAGENTA_ON_INTENSE_BLUE		= "\033[35;104m";
-	constexpr const char* MAGENTA_ON_INTENSE_WHITE		= "\033[35;107m";
-	constexpr const char* MAGENTA_ON_INTENSE_YELLOW		= "\033[35;103m";
-	constexpr const char* MAGENTA_ON_INTENSE_CYAN		= "\033[35;106m";
-	constexpr const char* MAGENTA_ON_INTENSE_MAGENTA	= "\033[35;105m";
-	constexpr const char* MAGENTA_ON_INTENSE_BLACK		= "\033[35;100m";
+	constexpr char MAGENTA_ON_RED[]				= "\033[35;41m";
+	constexpr char MAGENTA_ON_GREEN[]				= "\033[35;42m";
+	constexpr char MAGENTA_ON_BLUE[]				= "\033[35;44m";
+	constexpr char MAGENTA_ON_WHITE[]			= "\033[35;47m";
+	constexpr char MAGENTA_ON_YELLOW[]				= "\033[35;43m";
+	constexpr char MAGENTA_ON_CYAN[]				= "\033[35;46m";
+	constexpr char MAGENTA_ON_BLACK[]				= "\033[35;40m";
+	constexpr char MAGENTA_ON_INTENSE_RED[]		= "\033[35;101m";
+	constexpr char MAGENTA_ON_INTENSE_GREEN[]		= "\033[35;102m";
+	constexpr char MAGENTA_ON_INTENSE_BLUE[]		= "\033[35;104m";
+	constexpr char MAGENTA_ON_INTENSE_WHITE[]		= "\033[35;107m";
+	constexpr char MAGENTA_ON_INTENSE_YELLOW[]		= "\033[35;103m";
+	constexpr char MAGENTA_ON_INTENSE_CYAN[]		= "\033[35;106m";
+	constexpr char MAGENTA_ON_INTENSE_MAGENTA[]	= "\033[35;105m";
+	constexpr char MAGENTA_ON_INTENSE_BLACK[]		= "\033[35;100m";
 
-	constexpr const char* BLACK_ON_RED					= "\033[30;41m";
-	constexpr const char* BLACK_ON_GREEN				= "\033[30;42m";
-	constexpr const char* BLACK_ON_BLUE					= "\033[30;44m";
-	constexpr const char* BLACK_ON_WHITE				= "\033[30;47m";
-	constexpr const char* BLACK_ON_YELLOW				= "\033[30;43m";
-	constexpr const char* BLACK_ON_CYAN					= "\033[30;46m";
-	constexpr const char* BLACK_ON_MAGENTA				= "\033[30;45m";
-	constexpr const char* BLACK_ON_INTENSE_RED			= "\033[30;101m";
-	constexpr const char* BLACK_ON_INTENSE_GREEN		= "\033[30;102m";
-	constexpr const char* BLACK_ON_INTENSE_BLUE			= "\033[30;104m";
-	constexpr const char* BLACK_ON_INTENSE_WHITE		= "\033[30;107m";
-	constexpr const char* BLACK_ON_INTENSE_YELLOW		= "\033[30;103m";
-	constexpr const char* BLACK_ON_INTENSE_CYAN			= "\033[30;106m";
-	constexpr const char* BLACK_ON_INTENSE_MAGENTA		= "\033[30;105m";
-	constexpr const char* BLACK_ON_INTENSE_BLACK		= "\033[30;100m";
+	constexpr char BLACK_ON_RED[]					= "\033[30;41m";
+	constexpr char BLACK_ON_GREEN[]				= "\033[30;42m";
+	constexpr char BLACK_ON_BLUE[]					= "\033[30;44m";
+	constexpr char BLACK_ON_WHITE[]				= "\033[30;47m";
+	constexpr char BLACK_ON_YELLOW[]				= "\033[30;43m";
+	constexpr char BLACK_ON_CYAN[]					= "\033[30;46m";
+	constexpr char BLACK_ON_MAGENTA[]				= "\033[30;45m";
+	constexpr char BLACK_ON_INTENSE_RED[]			= "\033[30;101m";
+	constexpr char BLACK_ON_INTENSE_GREEN[]		= "\033[30;102m";
+	constexpr char BLACK_ON_INTENSE_BLUE[]			= "\033[30;104m";
+	constexpr char BLACK_ON_INTENSE_WHITE[]		= "\033[30;107m";
+	constexpr char BLACK_ON_INTENSE_YELLOW[]		= "\033[30;103m";
+	constexpr char BLACK_ON_INTENSE_CYAN[]			= "\033[30;106m";
+	constexpr char BLACK_ON_INTENSE_MAGENTA[]		= "\033[30;105m";
+	constexpr char BLACK_ON_INTENSE_BLACK[]		= "\033[30;100m";
 
-	constexpr const char* INTENSE_RED_ON_RED				= "\033[91;41m";
-	constexpr const char* INTENSE_RED_ON_GREEN				= "\033[91;42m";
-	constexpr const char* INTENSE_RED_ON_BLUE				= "\033[91;44m";
-	constexpr const char* INTENSE_RED_ON_WHITE				= "\033[91;47m";
-	constexpr const char* INTENSE_RED_ON_YELLOW				= "\033[91;43m";
-	constexpr const char* INTENSE_RED_ON_CYAN				= "\033[91;46m";
-	constexpr const char* INTENSE_RED_ON_MAGENTA			= "\033[91;45m";
-	constexpr const char* INTENSE_RED_ON_BLACK				= "\033[91;40m";
-	constexpr const char* INTENSE_RED_ON_INTENSE_GREEN		= "\033[91;102m";
-	constexpr const char* INTENSE_RED_ON_INTENSE_BLUE		= "\033[91;104m";
-	constexpr const char* INTENSE_RED_ON_INTENSE_WHITE		= "\033[91;107m";
-	constexpr const char* INTENSE_RED_ON_INTENSE_YELLOW		= "\033[91;103m";
-	constexpr const char* INTENSE_RED_ON_INTENSE_CYAN		= "\033[91;106m";
-	constexpr const char* INTENSE_RED_ON_INTENSE_MAGENTA	= "\033[91;105m";
-	constexpr const char* INTENSE_RED_ON_INTENSE_BLACK		= "\033[91;100m";
+	constexpr char INTENSE_RED_ON_RED[]				= "\033[91;41m";
+	constexpr char INTENSE_RED_ON_GREEN[]				= "\033[91;42m";
+	constexpr char INTENSE_RED_ON_BLUE[]				= "\033[91;44m";
+	constexpr char INTENSE_RED_ON_WHITE[]				= "\033[91;47m";
+	constexpr char INTENSE_RED_ON_YELLOW[]				= "\033[91;43m";
+	constexpr char INTENSE_RED_ON_CYAN[]				= "\033[91;46m";
+	constexpr char INTENSE_RED_ON_MAGENTA[]			= "\033[91;45m";
+	constexpr char INTENSE_RED_ON_BLACK[]				= "\033[91;40m";
+	constexpr char INTENSE_RED_ON_INTENSE_GREEN[]		= "\033[91;102m";
+	constexpr char INTENSE_RED_ON_INTENSE_BLUE[]		= "\033[91;104m";
+	constexpr char INTENSE_RED_ON_INTENSE_WHITE[]		= "\033[91;107m";
+	constexpr char INTENSE_RED_ON_INTENSE_YELLOW[]		= "\033[91;103m";
+	constexpr char INTENSE_RED_ON_INTENSE_CYAN[]		= "\033[91;106m";
+	constexpr char INTENSE_RED_ON_INTENSE_MAGENTA[]	= "\033[91;105m";
+	constexpr char INTENSE_RED_ON_INTENSE_BLACK[]		= "\033[91;100m";
 
-	constexpr const char* INTENSE_GREEN_ON_RED				= "\033[92;41m";
-	constexpr const char* INTENSE_GREEN_ON_GREEN			= "\033[92;42m";
-	constexpr const char* INTENSE_GREEN_ON_BLUE				= "\033[92;44m";
-	constexpr const char* INTENSE_GREEN_ON_WHITE			= "\033[92;47m";
-	constexpr const char* INTENSE_GREEN_ON_YELLOW			= "\033[92;43m";
-	constexpr const char* INTENSE_GREEN_ON_CYAN				= "\033[92;46m";
-	constexpr const char* INTENSE_GREEN_ON_MAGENTA			= "\033[92;45m";
-	constexpr const char* INTENSE_GREEN_ON_BLACK			= "\033[92;40m";
-	constexpr const char* INTENSE_GREEN_ON_INTENSE_RED		= "\033[92;101m";
-	constexpr const char* INTENSE_GREEN_ON_INTENSE_BLUE		= "\033[92;104m";
-	constexpr const char* INTENSE_GREEN_ON_INTENSE_WHITE	= "\033[92;107m";
-	constexpr const char* INTENSE_GREEN_ON_INTENSE_YELLOW	= "\033[92;103m";
-	constexpr const char* INTENSE_GREEN_ON_INTENSE_CYAN		= "\033[92;106m";
-	constexpr const char* INTENSE_GREEN_ON_INTENSE_MAGENTA	= "\033[92;105m";
-	constexpr const char* INTENSE_GREEN_ON_INTENSE_BLACK	= "\033[92;100m";
+	constexpr char INTENSE_GREEN_ON_RED[]				= "\033[92;41m";
+	constexpr char INTENSE_GREEN_ON_GREEN[]			= "\033[92;42m";
+	constexpr char INTENSE_GREEN_ON_BLUE[]				= "\033[92;44m";
+	constexpr char INTENSE_GREEN_ON_WHITE[]			= "\033[92;47m";
+	constexpr char INTENSE_GREEN_ON_YELLOW[]			= "\033[92;43m";
+	constexpr char INTENSE_GREEN_ON_CYAN[]				= "\033[92;46m";
+	constexpr char INTENSE_GREEN_ON_MAGENTA[]			= "\033[92;45m";
+	constexpr char INTENSE_GREEN_ON_BLACK[]			= "\033[92;40m";
+	constexpr char INTENSE_GREEN_ON_INTENSE_RED[]		= "\033[92;101m";
+	constexpr char INTENSE_GREEN_ON_INTENSE_BLUE[]		= "\033[92;104m";
+	constexpr char INTENSE_GREEN_ON_INTENSE_WHITE[]	= "\033[92;107m";
+	constexpr char INTENSE_GREEN_ON_INTENSE_YELLOW[]	= "\033[92;103m";
+	constexpr char INTENSE_GREEN_ON_INTENSE_CYAN[]		= "\033[92;106m";
+	constexpr char INTENSE_GREEN_ON_INTENSE_MAGENTA[]	= "\033[92;105m";
+	constexpr char INTENSE_GREEN_ON_INTENSE_BLACK[]	= "\033[92;100m";
 
-	constexpr const char* INTENSE_BLUE_ON_RED				= "\033[94;41m";
-	constexpr const char* INTENSE_BLUE_ON_GREEN				= "\033[94;42m";
-	constexpr const char* INTENSE_BLUE_ON_BLUE				= "\033[94;44m";
-	constexpr const char* INTENSE_BLUE_ON_WHITE				= "\033[94;47m";
-	constexpr const char* INTENSE_BLUE_ON_YELLOW			= "\033[94;43m";
-	constexpr const char* INTENSE_BLUE_ON_CYAN				= "\033[94;46m";
-	constexpr const char* INTENSE_BLUE_ON_MAGENTA			= "\033[94;45m";
-	constexpr const char* INTENSE_BLUE_ON_BLACK				= "\033[94;40m";
-	constexpr const char* INTENSE_BLUE_ON_INTENSE_RED		= "\033[94;101m";
-	constexpr const char* INTENSE_BLUE_ON_INTENSE_GREEN		= "\033[94;102m";
-	constexpr const char* INTENSE_BLUE_ON_INTENSE_WHITE		= "\033[94;107m";
-	constexpr const char* INTENSE_BLUE_ON_INTENSE_YELLOW	= "\033[94;103m";
-	constexpr const char* INTENSE_BLUE_ON_INTENSE_CYAN		= "\033[94;106m";
-	constexpr const char* INTENSE_BLUE_ON_INTENSE_MAGENTA	= "\033[94;105m";
-	constexpr const char* INTENSE_BLUE_ON_INTENSE_BLACK		= "\033[94;100m";
+	constexpr char INTENSE_BLUE_ON_RED[]				= "\033[94;41m";
+	constexpr char INTENSE_BLUE_ON_GREEN[]				= "\033[94;42m";
+	constexpr char INTENSE_BLUE_ON_BLUE[]				= "\033[94;44m";
+	constexpr char INTENSE_BLUE_ON_WHITE[]				= "\033[94;47m";
+	constexpr char INTENSE_BLUE_ON_YELLOW[]			= "\033[94;43m";
+	constexpr char INTENSE_BLUE_ON_CYAN[]				= "\033[94;46m";
+	constexpr char INTENSE_BLUE_ON_MAGENTA[]			= "\033[94;45m";
+	constexpr char INTENSE_BLUE_ON_BLACK[]				= "\033[94;40m";
+	constexpr char INTENSE_BLUE_ON_INTENSE_RED[]		= "\033[94;101m";
+	constexpr char INTENSE_BLUE_ON_INTENSE_GREEN[]		= "\033[94;102m";
+	constexpr char INTENSE_BLUE_ON_INTENSE_WHITE[]		= "\033[94;107m";
+	constexpr char INTENSE_BLUE_ON_INTENSE_YELLOW[]	= "\033[94;103m";
+	constexpr char INTENSE_BLUE_ON_INTENSE_CYAN[]		= "\033[94;106m";
+	constexpr char INTENSE_BLUE_ON_INTENSE_MAGENTA[]	= "\033[94;105m";
+	constexpr char INTENSE_BLUE_ON_INTENSE_BLACK[]		= "\033[94;100m";
 
-	constexpr const char* INTENSE_WHITE_ON_RED				= "\033[97;41m";
-	constexpr const char* INTENSE_WHITE_ON_GREEN			= "\033[97;42m";
-	constexpr const char* INTENSE_WHITE_ON_BLUE				= "\033[97;44m";
-	constexpr const char* INTENSE_WHITE_ON_WHITE			= "\033[97;47m";
-	constexpr const char* INTENSE_WHITE_ON_YELLOW			= "\033[97;43m";
-	constexpr const char* INTENSE_WHITE_ON_CYAN				= "\033[97;46m";
-	constexpr const char* INTENSE_WHITE_ON_MAGENTA			= "\033[97;45m";
-	constexpr const char* INTENSE_WHITE_ON_BLACK			= "\033[97;40m";
-	constexpr const char* INTENSE_WHITE_ON_INTENSE_RED		= "\033[97;101m";
-	constexpr const char* INTENSE_WHITE_ON_INTENSE_GREEN	= "\033[97;102m";
-	constexpr const char* INTENSE_WHITE_ON_INTENSE_BLUE		= "\033[97;104m";
-	constexpr const char* INTENSE_WHITE_ON_INTENSE_YELLOW	= "\033[97;103m";
-	constexpr const char* INTENSE_WHITE_ON_INTENSE_CYAN		= "\033[97;106m";
-	constexpr const char* INTENSE_WHITE_ON_INTENSE_MAGENTA	= "\033[97;105m";
-	constexpr const char* INTENSE_WHITE_ON_INTENSE_BLACK	= "\033[97;100m";
+	constexpr char INTENSE_WHITE_ON_RED[]				= "\033[97;41m";
+	constexpr char INTENSE_WHITE_ON_GREEN[]			= "\033[97;42m";
+	constexpr char INTENSE_WHITE_ON_BLUE[]				= "\033[97;44m";
+	constexpr char INTENSE_WHITE_ON_WHITE[]			= "\033[97;47m";
+	constexpr char INTENSE_WHITE_ON_YELLOW[]			= "\033[97;43m";
+	constexpr char INTENSE_WHITE_ON_CYAN[]				= "\033[97;46m";
+	constexpr char INTENSE_WHITE_ON_MAGENTA[]			= "\033[97;45m";
+	constexpr char INTENSE_WHITE_ON_BLACK[]			= "\033[97;40m";
+	constexpr char INTENSE_WHITE_ON_INTENSE_RED[]		= "\033[97;101m";
+	constexpr char INTENSE_WHITE_ON_INTENSE_GREEN[]	= "\033[97;102m";
+	constexpr char INTENSE_WHITE_ON_INTENSE_BLUE[]		= "\033[97;104m";
+	constexpr char INTENSE_WHITE_ON_INTENSE_YELLOW[]	= "\033[97;103m";
+	constexpr char INTENSE_WHITE_ON_INTENSE_CYAN[]		= "\033[97;106m";
+	constexpr char INTENSE_WHITE_ON_INTENSE_MAGENTA[]	= "\033[97;105m";
+	constexpr char INTENSE_WHITE_ON_INTENSE_BLACK[]	= "\033[97;100m";
 
-	constexpr const char* INTENSE_YELLOW_ON_RED				= "\033[93;41m";
-	constexpr const char* INTENSE_YELLOW_ON_GREEN			= "\033[93;42m";
-	constexpr const char* INTENSE_YELLOW_ON_BLUE			= "\033[93;44m";
-	constexpr const char* INTENSE_YELLOW_ON_WHITE			= "\033[93;47m";
-	constexpr const char* INTENSE_YELLOW_ON_YELLOW			= "\033[93;43m";
-	constexpr const char* INTENSE_YELLOW_ON_CYAN			= "\033[93;46m";
-	constexpr const char* INTENSE_YELLOW_ON_MAGENTA			= "\033[93;45m";
-	constexpr const char* INTENSE_YELLOW_ON_BLACK			= "\033[93;40m";
-	constexpr const char* INTENSE_YELLOW_ON_INTENSE_RED		= "\033[93;101m";
-	constexpr const char* INTENSE_YELLOW_ON_INTENSE_GREEN	= "\033[93;102m";
-	constexpr const char* INTENSE_YELLOW_ON_INTENSE_BLUE	= "\033[93;104m";
-	constexpr const char* INTENSE_YELLOW_ON_INTENSE_WHITE	= "\033[93;107m";
-	constexpr const char* INTENSE_YELLOW_ON_INTENSE_CYAN	= "\033[93;106m";
-	constexpr const char* INTENSE_YELLOW_ON_INTENSE_MAGENTA = "\033[93;105m";
-	constexpr const char* INTENSE_YELLOW_ON_INTENSE_BLACK	= "\033[93;100m";
+	constexpr char INTENSE_YELLOW_ON_RED[]				= "\033[93;41m";
+	constexpr char INTENSE_YELLOW_ON_GREEN[]			= "\033[93;42m";
+	constexpr char INTENSE_YELLOW_ON_BLUE[]			= "\033[93;44m";
+	constexpr char INTENSE_YELLOW_ON_WHITE[]			= "\033[93;47m";
+	constexpr char INTENSE_YELLOW_ON_YELLOW[]			= "\033[93;43m";
+	constexpr char INTENSE_YELLOW_ON_CYAN[]			= "\033[93;46m";
+	constexpr char INTENSE_YELLOW_ON_MAGENTA[]			= "\033[93;45m";
+	constexpr char INTENSE_YELLOW_ON_BLACK[]			= "\033[93;40m";
+	constexpr char INTENSE_YELLOW_ON_INTENSE_RED[]		= "\033[93;101m";
+	constexpr char INTENSE_YELLOW_ON_INTENSE_GREEN[]	= "\033[93;102m";
+	constexpr char INTENSE_YELLOW_ON_INTENSE_BLUE[]	= "\033[93;104m";
+	constexpr char INTENSE_YELLOW_ON_INTENSE_WHITE[]	= "\033[93;107m";
+	constexpr char INTENSE_YELLOW_ON_INTENSE_CYAN[]	= "\033[93;106m";
+	constexpr char INTENSE_YELLOW_ON_INTENSE_MAGENTA[] = "\033[93;105m";
+	constexpr char INTENSE_YELLOW_ON_INTENSE_BLACK[]	= "\033[93;100m";
 
-	constexpr const char* INTENSE_CYAN_ON_RED				= "\033[96;41m";
-	constexpr const char* INTENSE_CYAN_ON_GREEN				= "\033[96;42m";
-	constexpr const char* INTENSE_CYAN_ON_BLUE				= "\033[96;44m";
-	constexpr const char* INTENSE_CYAN_ON_WHITE				= "\033[96;47m";
-	constexpr const char* INTENSE_CYAN_ON_YELLOW			= "\033[96;43m";
-	constexpr const char* INTENSE_CYAN_ON_CYAN				= "\033[96;46m";
-	constexpr const char* INTENSE_CYAN_ON_MAGENTA			= "\033[96;45m";
-	constexpr const char* INTENSE_CYAN_ON_BLACK				= "\033[96;40m";
-	constexpr const char* INTENSE_CYAN_ON_INTENSE_RED		= "\033[96;101m";
-	constexpr const char* INTENSE_CYAN_ON_INTENSE_GREEN		= "\033[96;102m";
-	constexpr const char* INTENSE_CYAN_ON_INTENSE_BLUE		= "\033[96;104m";
-	constexpr const char* INTENSE_CYAN_ON_INTENSE_WHITE		= "\033[96;107m";
-	constexpr const char* INTENSE_CYAN_ON_INTENSE_YELLOW	= "\033[96;103m";
-	constexpr const char* INTENSE_CYAN_ON_INTENSE_MAGENTA	= "\033[96;105m";
-	constexpr const char* INTENSE_CYAN_ON_INTENSE_BLACK		= "\033[96;100m";
+	constexpr char INTENSE_CYAN_ON_RED[]				= "\033[96;41m";
+	constexpr char INTENSE_CYAN_ON_GREEN[]				= "\033[96;42m";
+	constexpr char INTENSE_CYAN_ON_BLUE[]				= "\033[96;44m";
+	constexpr char INTENSE_CYAN_ON_WHITE[]				= "\033[96;47m";
+	constexpr char INTENSE_CYAN_ON_YELLOW[]			= "\033[96;43m";
+	constexpr char INTENSE_CYAN_ON_CYAN[]				= "\033[96;46m";
+	constexpr char INTENSE_CYAN_ON_MAGENTA[]			= "\033[96;45m";
+	constexpr char INTENSE_CYAN_ON_BLACK[]				= "\033[96;40m";
+	constexpr char INTENSE_CYAN_ON_INTENSE_RED[]		= "\033[96;101m";
+	constexpr char INTENSE_CYAN_ON_INTENSE_GREEN[]		= "\033[96;102m";
+	constexpr char INTENSE_CYAN_ON_INTENSE_BLUE[]		= "\033[96;104m";
+	constexpr char INTENSE_CYAN_ON_INTENSE_WHITE[]		= "\033[96;107m";
+	constexpr char INTENSE_CYAN_ON_INTENSE_YELLOW[]	= "\033[96;103m";
+	constexpr char INTENSE_CYAN_ON_INTENSE_MAGENTA[]	= "\033[96;105m";
+	constexpr char INTENSE_CYAN_ON_INTENSE_BLACK[]		= "\033[96;100m";
 
-	constexpr const char* INTENSE_MAGENTA_ON_RED			= "\033[95;41m";
-	constexpr const char* INTENSE_MAGENTA_ON_GREEN			= "\033[95;42m";
-	constexpr const char* INTENSE_MAGENTA_ON_BLUE			= "\033[95;44m";
-	constexpr const char* INTENSE_MAGENTA_ON_WHITE			= "\033[95;47m";
-	constexpr const char* INTENSE_MAGENTA_ON_YELLOW			= "\033[95;43m";
-	constexpr const char* INTENSE_MAGENTA_ON_CYAN			= "\033[95;46m";
-	constexpr const char* INTENSE_MAGENTA_ON_MAGENTA		= "\033[95;45m";
-	constexpr const char* INTENSE_MAGENTA_ON_BLACK			= "\033[95;40m";
-	constexpr const char* INTENSE_MAGENTA_ON_INTENSE_RED	= "\033[95;101m";
-	constexpr const char* INTENSE_MAGENTA_ON_INTENSE_GREEN	= "\033[95;102m";
-	constexpr const char* INTENSE_MAGENTA_ON_INTENSE_BLUE	= "\033[95;104m";
-	constexpr const char* INTENSE_MAGENTA_ON_INTENSE_WHITE	= "\033[95;107m";
-	constexpr const char* INTENSE_MAGENTA_ON_INTENSE_YELLOW = "\033[95;103m";
-	constexpr const char* INTENSE_MAGENTA_ON_INTENSE_CYAN	= "\033[95;106m";
-	constexpr const char* INTENSE_MAGENTA_ON_INTENSE_BLACK	= "\033[95;100m";
+	constexpr char INTENSE_MAGENTA_ON_RED[]			= "\033[95;41m";
+	constexpr char INTENSE_MAGENTA_ON_GREEN[]			= "\033[95;42m";
+	constexpr char INTENSE_MAGENTA_ON_BLUE[]			= "\033[95;44m";
+	constexpr char INTENSE_MAGENTA_ON_WHITE[]			= "\033[95;47m";
+	constexpr char INTENSE_MAGENTA_ON_YELLOW[]			= "\033[95;43m";
+	constexpr char INTENSE_MAGENTA_ON_CYAN[]		= "\033[95;46m";
+	constexpr char INTENSE_MAGENTA_ON_MAGENTA[]		= "\033[95;45m";
+	constexpr char INTENSE_MAGENTA_ON_BLACK[]			= "\033[95;40m";
+	constexpr char INTENSE_MAGENTA_ON_INTENSE_RED[]	= "\033[95;101m";
+	constexpr char INTENSE_MAGENTA_ON_INTENSE_GREEN[]	= "\033[95;102m";
+	constexpr char INTENSE_MAGENTA_ON_INTENSE_BLUE[]	= "\033[95;104m";
+	constexpr char INTENSE_MAGENTA_ON_INTENSE_WHITE[]	= "\033[95;107m";
+	constexpr char INTENSE_MAGENTA_ON_INTENSE_YELLOW[] = "\033[95;103m";
+	constexpr char INTENSE_MAGENTA_ON_INTENSE_CYAN[]	= "\033[95;106m";
+	constexpr char INTENSE_MAGENTA_ON_INTENSE_BLACK[]	= "\033[95;100m";
 
-	constexpr const char* INTENSE_BLACK_ON_RED				= "\033[90;41m";
-	constexpr const char* INTENSE_BLACK_ON_GREEN			= "\033[90;42m";
-	constexpr const char* INTENSE_BLACK_ON_BLUE				= "\033[90;44m";
-	constexpr const char* INTENSE_BLACK_ON_WHITE			= "\033[90;47m";
-	constexpr const char* INTENSE_BLACK_ON_YELLOW			= "\033[90;43m";
-	constexpr const char* INTENSE_BLACK_ON_CYAN				= "\033[90;46m";
-	constexpr const char* INTENSE_BLACK_ON_MAGENTA			= "\033[90;45m";
-	constexpr const char* INTENSE_BLACK_ON_BLACK			= "\033[90;40m";
-	constexpr const char* INTENSE_BLACK_ON_INTENSE_RED		= "\033[90;101m";
-	constexpr const char* INTENSE_BLACK_ON_INTENSE_GREEN	= "\033[90;102m";
-	constexpr const char* INTENSE_BLACK_ON_INTENSE_BLUE		= "\033[90;104m";
-	constexpr const char* INTENSE_BLACK_ON_INTENSE_WHITE	= "\033[90;107m";
-	constexpr const char* INTENSE_BLACK_ON_INTENSE_YELLOW	= "\033[90;103m";
-	constexpr const char* INTENSE_BLACK_ON_INTENSE_CYAN		= "\033[90;106m";
-	constexpr const char* INTENSE_BLACK_ON_INTENSE_MAGENTA	= "\033[90;105m";
+	constexpr char INTENSE_BLACK_ON_RED[]				= "\033[90;41m";
+	constexpr char INTENSE_BLACK_ON_GREEN[]			= "\033[90;42m";
+	constexpr char INTENSE_BLACK_ON_BLUE[]				= "\033[90;44m";
+	constexpr char INTENSE_BLACK_ON_WHITE[]			= "\033[90;47m";
+	constexpr char INTENSE_BLACK_ON_YELLOW[]			= "\033[90;43m";
+	constexpr char INTENSE_BLACK_ON_CYAN[]				= "\033[90;46m";
+	constexpr char INTENSE_BLACK_ON_MAGENTA[]			= "\033[90;45m";
+	constexpr char INTENSE_BLACK_ON_BLACK[]			= "\033[90;40m";
+	constexpr char INTENSE_BLACK_ON_INTENSE_RED[]		= "\033[90;101m";
+	constexpr char INTENSE_BLACK_ON_INTENSE_GREEN[]	= "\033[90;102m";
+	constexpr char INTENSE_BLACK_ON_INTENSE_BLUE[]		= "\033[90;104m";
+	constexpr char INTENSE_BLACK_ON_INTENSE_WHITE[]	= "\033[90;107m";
+	constexpr char INTENSE_BLACK_ON_INTENSE_YELLOW[]	= "\033[90;103m";
+	constexpr char INTENSE_BLACK_ON_INTENSE_CYAN[]		= "\033[90;106m";
+	constexpr char INTENSE_BLACK_ON_INTENSE_MAGENTA[]	= "\033[90;105m";
 
-	constexpr const char* COLOR_RESET						= "\033[0m";
+	constexpr char COLOR_RESET[]						= "\033[0m";
 }
 
-typedef std::array<const char*, 5> LogLevelColorMap;  //<level, colorCode>
+typedef const char* LLogColorCode;
 #endif
 
-constexpr const char* LLOGGER_DEFAULT_FILE_PATH = "./log.txt";
+constexpr char LLOGGER_DEFAULT_FILE_PATH[]      = "./log.txt";
 constexpr size_t LLOGGER_MAX_BUFFER_SIZE        = 1073741824;  //1GB
 constexpr size_t LLOGGER_ERR_BUFFER_SIZE        = 128;
 constexpr size_t LLOGGER_DEFAULT_BUFFER_SIZE    = 128;
@@ -627,6 +627,7 @@ enum class LLogType : uint8_t
 	FILE                = 1,
 	CONSOLE_AND_FILE    = 2
 };
+constexpr std::array<const char*, 3> LLogTypeStr = { "CONSOLE", "FILE", "CONSOLE_AND_FILE" };
 
 enum class LLogLevel : uint8_t
 {
@@ -636,6 +637,7 @@ enum class LLogLevel : uint8_t
 	LOG_WARN    = 3,
 	LOG_INFO    = 4
 };
+constexpr std::array<const char*, 5> LLogLevelStr = { "LOG_OFF", "LOG_FATAL", "LOG_ERROR", "LOG_WARN", "LOG_INFO" };
 constexpr std::array<const char*, 5> LLogLevelPrefix = { "[OFF] ", "[FATAL] ", "[ERROR] ", "[WARN] ", "[INFO] " };
 
 class LLogger
@@ -651,17 +653,12 @@ public:
 		CONSOLE_SCREEN_BUFFER_INFO  consoleBufferInfo;
 		GetConsoleScreenBufferInfo(ConsoleHandle, &consoleBufferInfo);
 		defaultConsoleAttr = consoleBufferInfo.wAttributes;
-
-		logLevelColors[(uint8_t)LLogLevel::LOG_FATAL]   = (uint16_t)LLogColor::INTENSE_WHITE_ON_INTENSE_RED;
-		logLevelColors[(uint8_t)LLogLevel::LOG_ERROR]   = (uint16_t)LLogColor::INTENSE_RED_ON_BLACK;
-		logLevelColors[(uint8_t)LLogLevel::LOG_WARN]    = (uint16_t)LLogColor::INTENSE_YELLOW_ON_BLACK;
-		logLevelColors[(uint8_t)LLogLevel::LOG_INFO]    = (uint16_t)LLogColor::INTENSE_CYAN_ON_BLACK;
-#else
+#endif
 		logLevelColors[(uint8_t)LLogLevel::LOG_FATAL]   = LLogColor::INTENSE_WHITE_ON_INTENSE_RED;
 		logLevelColors[(uint8_t)LLogLevel::LOG_ERROR]   = LLogColor::INTENSE_RED_ON_BLACK;
 		logLevelColors[(uint8_t)LLogLevel::LOG_WARN]    = LLogColor::INTENSE_YELLOW_ON_BLACK;
 		logLevelColors[(uint8_t)LLogLevel::LOG_INFO]    = LLogColor::INTENSE_CYAN_ON_BLACK;
-#endif
+
 		//Set default values
 		logType	    = LLogType::CONSOLE;
 		logLevel    = LLogLevel::LOG_INFO;
@@ -669,6 +666,30 @@ public:
 		SetLogBufferSize(LLOGGER_DEFAULT_BUFFER_SIZE);
 		showPrefix    = true;
 		showTimeStamp = false;
+	}
+
+	/*
+	* Description    :  Default constructor. Initializes all default settings.
+	* Return         :
+	*/
+	LLogger(const LLogType& type, const LLogLevel& level, bool prefix = true, bool timestamp = false)
+	{
+#ifdef IS_MSVC
+		CONSOLE_SCREEN_BUFFER_INFO  consoleBufferInfo;
+		GetConsoleScreenBufferInfo(ConsoleHandle, &consoleBufferInfo);
+		defaultConsoleAttr = consoleBufferInfo.wAttributes;
+#endif
+		logLevelColors[(uint8_t)LLogLevel::LOG_FATAL]   = LLogColor::INTENSE_WHITE_ON_INTENSE_RED;
+		logLevelColors[(uint8_t)LLogLevel::LOG_ERROR]   = LLogColor::INTENSE_RED_ON_BLACK;
+		logLevelColors[(uint8_t)LLogLevel::LOG_WARN]    = LLogColor::INTENSE_YELLOW_ON_BLACK;
+		logLevelColors[(uint8_t)LLogLevel::LOG_INFO]    = LLogColor::INTENSE_CYAN_ON_BLACK;
+
+		logType = type;
+		logLevel = level;
+		logFilePath = LLOGGER_DEFAULT_FILE_PATH;
+		SetLogBufferSize(LLOGGER_DEFAULT_BUFFER_SIZE);
+		showPrefix = prefix;
+		showTimeStamp = timestamp;
 	}
 
 	/*
@@ -691,7 +712,7 @@ public:
 	{
 		if ((uint8_t)newType > (uint8_t)LLogType::CONSOLE_AND_FILE)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid LogType entered! Ignoring this call...", __FUNCTION__);
+			PrintLoggerError("%s: Invalid LogType entered! Ignoring this call...", __FUNCTION__);
 			return false;
 		}
 
@@ -753,7 +774,7 @@ public:
 	{
 		if (newPath == nullptr || (newPath != nullptr && newPath[0] == '\0'))
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid file path entered! Ignoring this call...", __FUNCTION__);
+			PrintLoggerError("%s: Invalid file path entered! Ignoring this call...", __FUNCTION__);
 			return false;
 		}
 
@@ -785,7 +806,7 @@ public:
 			logFile.close();
 		else
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
+			PrintLoggerError("%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
 			return false;
 		}
 
@@ -806,7 +827,7 @@ public:
 	{
 		if (newLevel > LLogLevel::LOG_INFO)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid verbosity value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)newLevel);
+			PrintLoggerError("%s: Invalid verbosity value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)newLevel);
 			return false;
 		}
 
@@ -829,56 +850,25 @@ public:
 		return logLevel;
 	}
 
-#ifdef IS_MSVC
-	/*
-	* Description    :  Sets the color code of a selected log level.
-	* Return         :  True = Successful execution, False = Error detected.
-	*/
-	bool SetLogLevelColor(const LLogLevel& level, const LLogColor& colorCode)
-	{
-		if (level < LLogLevel::LOG_FATAL || level > LLogLevel::LOG_INFO)
-		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level color value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
-			return false;
-		}
-
-		logLevelColors[(uint8_t)level] = (int)colorCode;
-		return true;
-	}
-
-	/*
-	* Description    :  Returns the currently configured color code of a selected log level.
-	* Return         :  Current color code.
-	*/
-	LLogColor GetLogLevelColor(const LLogLevel& level)
-	{
-		if (level < LLogLevel::LOG_FATAL || level > LLogLevel::LOG_INFO)
-		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level color value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
-			return LLogColor::FOREGROUND_BLACK;
-		}
-
-		return (LLogColor)logLevelColors[(uint8_t)level];
-	}
-#else
     /*
 	* Description    :  Sets the color code of a selected log level.
 	* Return         :  True = Successful execution, False = Error detected.
 	*/
-	bool SetLogLevelColor(const LLogLevel& level, const char* colorCode)
+	bool SetLogLevelColor(const LLogLevel& level, LLogColorCode colorCode)
 	{
 		if (level < LLogLevel::LOG_FATAL || level > LLogLevel::LOG_INFO)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
+			PrintLoggerError("%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
 			return false;
 		}
+#ifdef IS_GNU
 		if (colorCode == nullptr || (colorCode != nullptr && (colorCode[0] == '\0' || strstr(colorCode, "\033[") == nullptr)))
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid colorCode value was set! Ignoring this call...", __FUNCTION__);
+			PrintLoggerError("%s: Invalid colorCode value was set! Ignoring this call...", __FUNCTION__);
 			return false;
 		}
-
-		logLevelColors[(uint8_t)level] = colorCode;
+#endif
+		logLevelColors[(uint8_t)level] = (LLogColorCode)colorCode;
 		return true;
 	}
 
@@ -886,17 +876,20 @@ public:
 	* Description    :  Returns the currently configured color code of a selected log level.
 	* Return         :  Current color code.
 	*/
-	const char* GetLogLevelColor(const LLogLevel& level)
+	LLogColorCode GetLogLevelColor(const LLogLevel& level)
 	{
 		if (level < LLogLevel::LOG_FATAL || level > LLogLevel::LOG_INFO)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
+			PrintLoggerError("%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
+#ifdef IS_MSVC
+			return 0;
+#else
 			return "";
+#endif
 		}
 
 		return logLevelColors[(uint8_t)level];
 	}
-#endif
 
 	/*
 	* Description    :  Sets the size of the internal log buffer.
@@ -908,7 +901,7 @@ public:
 			logBuffer.resize(size);
 		else
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to set buffer limit of %zd characters! The maximum is %zd.", __FUNCTION__, size, LLOGGER_MAX_BUFFER_SIZE);
+			PrintLoggerError("%s: Unable to set buffer limit of %zd characters! The maximum is %zd.", __FUNCTION__, size, LLOGGER_MAX_BUFFER_SIZE);
 			return false;
 		}
 
@@ -924,126 +917,22 @@ public:
 		return logBuffer.size();
 	}
 
-#ifdef IS_MSVC
-	/*
-	* Description    :  Logs the list of texts in argument "msg", and displays them in their respective colors defined by argument "colorCode".
-	* Return         :  True = Successful execution, False = Error detected.
-	*/
-	inline bool LogLineColors(const LLogLevel& level, const std::initializer_list<const char*>& msg, const std::initializer_list<LLogColor>& colorCode)
-	{
-		if (level == LLogLevel::LOG_OFF)
-			return false;
-		else if (level > LLogLevel::LOG_INFO)
-		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
-			return false;
-		}
-
-		if (msg.size() == 0)
-		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Empty list detected for argument \"msg\"! Ignoring this call...", __FUNCTION__);
-			return false;
-		}
-
-		if (logLevel >= level)
-		{
-			std::lock_guard<std::mutex> guard(logMutex);
-
-			auto colorIter = colorCode.begin();
-
-			char tsBuff[TIMESTAMP_BUFF_LEN];
-			if (showTimeStamp)
-				WriteTimeStampToBuffer(tsBuff);
-
-			switch (logType)
-			{
-				case LLogType::CONSOLE: case LLogType::CONSOLE_AND_FILE:
-					if (logType == LLogType::CONSOLE_AND_FILE)
-					{
-						logFile.open(logFilePath, std::ios::app);
-
-						if (!logFile.is_open())
-							PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
-						else
-						{
-							if (showTimeStamp)
-								logFile << tsBuff;
-							if (showPrefix)
-								logFile << LLogLevelPrefix[(uint8_t)level];
-						}
-					}
-
-					SetConsoleTextAttribute(ConsoleHandle, logLevelColors[(uint8_t)level]);
-					printf("%s%s", (showTimeStamp) ? tsBuff : "", (showPrefix) ? LLogLevelPrefix[(uint8_t)level] : "");
-
-					for (auto& s : msg)
-					{
-						if (s != nullptr && s[0] != '\0')
-						{
-							SetConsoleTextAttribute(ConsoleHandle, (colorIter == colorCode.end()) ? defaultConsoleAttr : (WORD)(*colorIter));
-							fputs(s, stdout);
-
-							if (logFile.is_open())
-								logFile << s;
-						}
-						
-						if (colorIter != colorCode.end())
-							colorIter = std::next(colorIter);
-					}
-					SetConsoleTextAttribute(ConsoleHandle, defaultConsoleAttr);
-					fputs("\n", stdout);
-
-					if (logFile.is_open())
-					{
-						logFile << std::endl;
-						logFile.close();
-					}
-					break;
-				case LLogType::FILE:
-					logFile.open(logFilePath, std::ios::app);
-
-					if (!logFile.is_open())
-						PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
-					else
-					{
-						if (showTimeStamp)
-							logFile << tsBuff;
-						if (showPrefix)
-							logFile << LLogLevelPrefix[(uint8_t)level];
-
-						for (auto s : msg)
-						{
-							if (s != nullptr && s[0] != '\0')
-								logFile << s;
-						}
-
-						logFile << std::endl;
-						logFile.close();
-					}
-					break;
-			}
-		}
-
-		return true;
-	}
-#else
     /*
 	* Description    :  Logs the list of texts in argument "msg", and displays them in their respective colors defined by argument "colorCode".
 	* Return         :  True = Successful execution, False = Error detected.
 	*/
-	inline bool LogLineColors(const LLogLevel& level, const std::initializer_list<const char*>& msg, const std::initializer_list<const char*>& colorCode)
+	inline bool LogLineColors(const LLogLevel& level, const std::vector<const char*>& msg, const std::vector<LLogColorCode>& colorCode)
 	{
 		if (level == LLogLevel::LOG_OFF)
 			return false;
 		else if (level > LLogLevel::LOG_INFO)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
+			PrintLoggerError("%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
 			return false;
 		}
-
 		if (msg.size() == 0)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Empty list detected for argument \"msg\"! Ignoring this call...", __FUNCTION__);
+			PrintLoggerError("%s: Empty list detected for argument \"msg\"! Ignoring this call...", __FUNCTION__);
 			return false;
 		}
 
@@ -1051,67 +940,109 @@ public:
 		{
 			std::lock_guard<std::mutex> guard(logMutex);
 
-			auto colorIter = colorCode.begin();
+			char preMsgBuffer[64];
+			memset(preMsgBuffer, '\0', sizeof(preMsgBuffer));
 
-			char tsBuff[TIMESTAMP_BUFF_LEN];
-			if (showTimeStamp)
-				WriteTimeStampToBuffer(tsBuff);
+			size_t prefixLen = (showPrefix) ? strlen(LLogLevelPrefix[(uint8_t)level]) : 0;
+			size_t logLevelCodeLen = 0;
+			size_t colorResetLen = 0;
+			size_t timestampLen = (showTimeStamp) ? TIMESTAMP_BUFF_LEN - 1 : 0;
+
+			char* buffPtr = preMsgBuffer;
+#ifdef IS_GNU
+			logLevelCodeLen = strlen(logLevelColors[(uint8_t)level]);
+			colorResetLen = strlen(LLogColor::COLOR_RESET);
+
+			memcpy(buffPtr, logLevelColors[(uint8_t)level], logLevelCodeLen);
+			buffPtr += logLevelCodeLen;
+#endif
+			if (timestampLen > 0)
+			{
+				WriteTimeStampToBuffer(buffPtr);
+				buffPtr += timestampLen;
+			}
+			if (prefixLen > 0)
+			{
+				memcpy(buffPtr, LLogLevelPrefix[(uint8_t)level], prefixLen);
+				buffPtr += prefixLen;
+			}
+
+			auto colorIter = colorCode.begin();
 
 			switch (logType)
 			{
 				case LLogType::CONSOLE: case LLogType::CONSOLE_AND_FILE:
+#ifdef IS_MSVC
+					CONSOLE_SCREEN_BUFFER_INFO  consoleBufferInfo;
+					GetConsoleScreenBufferInfo(ConsoleHandle, &consoleBufferInfo);
+					defaultConsoleAttr = consoleBufferInfo.wAttributes;
+
+					SetConsoleTextAttribute(ConsoleHandle, logLevelColors[(uint8_t)level]);
+#endif
+					fputs(preMsgBuffer, stdout);
+
 					if (logType == LLogType::CONSOLE_AND_FILE)
 					{
 						logFile.open(logFilePath, std::ios::app);
 
 						if (!logFile.is_open())
-							PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
+							PrintLoggerError("%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
 						else
 						{
-							if (showTimeStamp)
-								logFile << tsBuff;
-							if (showPrefix)
-								logFile << LLogLevelPrefix[(uint8_t)level];
+							const char* ptr = &preMsgBuffer[logLevelCodeLen];
+							logFile.write(ptr, timestampLen + prefixLen);
 						}
 					}
 
-					printf("%s%s%s", logLevelColors[(uint8_t)level], (showTimeStamp) ? tsBuff : "", (showPrefix) ? LLogLevelPrefix[(uint8_t)level] : "");
-
-					for (auto& s : msg)
+					for (auto s : msg)
 					{
 						if (s != nullptr && s[0] != '\0')
 						{
-							fputs((colorIter == colorCode.end()) ? LLogColor::COLOR_RESET : *colorIter, stdout);
+#ifdef IS_MSVC
+							SetConsoleTextAttribute(ConsoleHandle, (colorIter == colorCode.end()) ? defaultConsoleAttr : (WORD)(*colorIter));
 							fputs(s, stdout);
-
+#else						
+							fputs((colorIter == colorCode.end()) ? LLogColor::COLOR_RESET : (*colorIter), stdout);
+							fputs(s, stdout);
+#endif							
 							if (logFile.is_open())
 								logFile << s;
 						}
 
 						if (colorIter != colorCode.end())
-							colorIter = std::next(colorIter);
+							colorIter++;
 					}
-					printf("%s\n", LLogColor::COLOR_RESET);
+#ifdef IS_MSVC
+					SetConsoleTextAttribute(ConsoleHandle, defaultConsoleAttr);
+					fputs("\n", stdout);
+#else
+					char postMsgBuffer[sizeof(LLogColor::COLOR_RESET) + 1];
+					buffPtr = postMsgBuffer;
 
+					memcpy(buffPtr, LLogColor::COLOR_RESET, colorResetLen);
+					buffPtr += colorResetLen;
+					memcpy(buffPtr, "\n", 2);
+								
+					fputs(postMsgBuffer, stdout);
+#endif
 					if (logFile.is_open())
 					{
 						logFile << std::endl;
 						logFile.close();
 					}
+
 					break;
 				case LLogType::FILE:
 					logFile.open(logFilePath, std::ios::app);
 
 					if (!logFile.is_open())
-						PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
+						PrintLoggerError("%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
 					else
 					{
-						if (showTimeStamp)
-							logFile << tsBuff;
-						if (showPrefix)
-							logFile << LLogLevelPrefix[(uint8_t)level];
+						const char* ptr = &preMsgBuffer[logLevelCodeLen];
+						logFile.write(ptr, timestampLen + prefixLen);
 
-						for (auto s : msg)
+						for (auto& s : msg)
 						{
 							if (s != nullptr && s[0] != '\0')
 								logFile << s;
@@ -1126,7 +1057,6 @@ public:
 
 		return true;
 	}
-#endif
 	
 	/*
 	* Description    :  Logs a formatted C string at the verbosity level defined in argument "level".
@@ -1139,18 +1069,20 @@ public:
 			return false;
 		else if (level > LLogLevel::LOG_INFO)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
+			PrintLoggerError("%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
 			return false;
 		}
 		
 		if (format == nullptr || (format != nullptr && format[0] == '\0'))
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: An empty or invalid string has been entered! Ignoring this call...", __FUNCTION__);
+			PrintLoggerError("%s: An empty or invalid string has been entered! Ignoring this call...", __FUNCTION__);
 			return false;
 		}
 
 		if (logLevel >= level)
 		{
+			std::lock_guard<std::mutex> guard(logMutex);
+
 			va_list args;
 			va_start(args, format);			
 			size_t msgLen = (size_t)vsnprintf(nullptr, 0, format, args);
@@ -1164,7 +1096,11 @@ public:
 #endif
 			size_t sizeRequired = colorCodeLen + TIMESTAMP_BUFF_LEN + prefixLen + msgLen + colorResetLen + 2;  //+ 2 to account for "\n\0".
 
-			std::lock_guard<std::mutex> guard(logMutex);
+#ifdef IS_MSVC
+			CONSOLE_SCREEN_BUFFER_INFO  consoleBufferInfo;
+			GetConsoleScreenBufferInfo(ConsoleHandle, &consoleBufferInfo);
+			defaultConsoleAttr = consoleBufferInfo.wAttributes;
+#endif
 
 			if (!CheckOrIncreaseBufferSize(sizeRequired))	
 			{
@@ -1175,8 +1111,8 @@ public:
 			//Write formatted strings to the buffer.
 			char* buffPtr = &logBuffer[0];
 #ifdef IS_GNU
-				memcpy(buffPtr, logLevelColors[(uint8_t)level], colorCodeLen);
-				buffPtr += colorCodeLen;
+			memcpy(buffPtr, logLevelColors[(uint8_t)level], colorCodeLen);
+			buffPtr += colorCodeLen;
 #endif
 			if (timestampLen > 0)
 			{
@@ -1222,7 +1158,7 @@ public:
 							logFile.close();
 						}
 						else
-							PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
+							PrintLoggerError("%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
 					}
 					break;
 				case LLogType::FILE:
@@ -1236,7 +1172,7 @@ public:
 						logFile.close();
 					}
 					else
-						PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
+						PrintLoggerError("%s: Unable to create/open log file \"%s\"", __FUNCTION__, logFilePath.c_str());
 					
 					break;
 			}
@@ -1251,12 +1187,12 @@ private:
 	
 	std::vector<char> logBuffer;
 	std::mutex        logMutex;
+	std::mutex        errMutex;
 
 	std::string       logFilePath;
 	std::ofstream     logFile;
-	LogLevelColorMap  logLevelColors;
+	std::array<LLogColorCode, 5> logLevelColors;
 #ifdef IS_MSVC
-	std::mutex        errMutex;
 	WORD              defaultConsoleAttr;
 #endif
     LLogType          logType;
@@ -1264,46 +1200,63 @@ private:
 	bool              showPrefix;
 	bool              showTimeStamp;
 
-#ifdef IS_MSVC
 	/*
 	* Description    :  Prints an error message as a C string.
 	* Return         :  
 	*/
-	inline void PrintLoggerError(const LLogColor& colorCode, const char* format, ...)
+	inline void PrintLoggerError(const char* format, ...)
 	{
+		constexpr char LLogClassPrefix[] = "[LLogger] ";
+		LLogColorCode colorCode = LLogColor::RED_ON_BLACK;
+
 		char buffer[LLOGGER_ERR_BUFFER_SIZE];
 		memset(buffer, '\0', sizeof(buffer));
-
-		va_list args;
-		va_start(args, format);
-		vsnprintf(buffer, sizeof(buffer), format, args);
-		va_end(args);
 
 		std::lock_guard<std::mutex> guard(errMutex);
 
-		SetConsoleTextAttribute(ConsoleHandle, (WORD)colorCode);
-		printf("[%s] %s", GetClassStr(), buffer);
-		SetConsoleTextAttribute(ConsoleHandle, defaultConsoleAttr);
-		fputs("\n", stdout);
-	}
-#else
-	/*
-	* Description    :  Prints an error message as a C string.
-	* Return         :  
-	*/
-	inline void PrintLoggerError(const char* colorCode, const char* format, ...)
-	{
-		char buffer[LLOGGER_ERR_BUFFER_SIZE];
-		memset(buffer, '\0', sizeof(buffer));
+		size_t colorCodeLen = 0;
+		size_t timestampLen = (showTimeStamp) ? TIMESTAMP_BUFF_LEN - 1 : 0;
+
+		char* buffPtr = buffer;
+#ifdef IS_GNU
+		colorCodeLen = sizeof(LLogColor::RED_ON_BLACK) - 1;
+		
+		memcpy(buffPtr, colorCode, colorCodeLen);
+		buffPtr += colorCodeLen;
+#endif
+		if (timestampLen > 0)
+		{
+			WriteTimeStampToBuffer(buffPtr);
+			buffPtr += timestampLen;
+		}
+
+		memcpy(buffPtr, LLogClassPrefix, sizeof(LLogClassPrefix) - 1);
+		buffPtr += sizeof(LLogClassPrefix) - 1;
 
 		va_list args;
+		va_start(args, format);			
+		size_t msgLen = (size_t)vsnprintf(nullptr, 0, format, args);
+
 		va_start(args, format);
-		vsnprintf(buffer, sizeof(buffer), format, args);
+		vsnprintf(buffPtr, msgLen + 1, format, args);
 		va_end(args);
 
-		printf("%s[%s] %s%s\n", colorCode, GetClassStr(), buffer, LLogColor::COLOR_RESET);
+		buffPtr += msgLen;
+
+#ifdef IS_MSVC
+		SetConsoleTextAttribute(ConsoleHandle, (WORD)colorCode);
+		fputs(buffer, stdout);
+		SetConsoleTextAttribute(ConsoleHandle, defaultConsoleAttr);
+		fputs("\n", stdout);
+#else
+		memcpy(buffPtr, LLogColor::COLOR_RESET, sizeof(LLogColor::COLOR_RESET) - 1);
+		buffPtr += sizeof(LLogColor::COLOR_RESET) - 1;
+		memcpy(buffPtr, "\n", 2);
+
+		fputs(buffer, stdout);
+#endif	
 	}
-#endif
+
 	/*
 	* Description    :  Checks if the log buffer size is adequate for the size in argument "setSize".
 	*                   If the current buffer size is smaller, it will increase in steps.
@@ -1313,7 +1266,7 @@ private:
 	{
 		if (setSize > LLOGGER_MAX_BUFFER_SIZE)
 		{
-			PrintLoggerError(LLogColor::RED_ON_BLACK, "%s: Unable to set buffer limit of %zd characters! The maximum is %zd.", __FUNCTION__, setSize, LLOGGER_MAX_BUFFER_SIZE);
+			PrintLoggerError("%s: Unable to set buffer limit of %zd characters! The maximum is %zd.", __FUNCTION__, setSize, LLOGGER_MAX_BUFFER_SIZE);
 			return false;
 		}
 		else if (setSize > logBuffer.size() && setSize <= LLOGGER_MAX_BUFFER_SIZE)
@@ -1331,7 +1284,7 @@ private:
 	* Description    :  Writes a formatted string of the current system time to a buffer specified in the argument.
 	* Return         :  
 	*/
-	void WriteTimeStampToBuffer(char* buff)
+	inline void WriteTimeStampToBuffer(char* buff)
 	{
 		std::time_t timenow = std::time(nullptr);
 		std::strftime(buff, TIMESTAMP_BUFF_LEN, "%H:%M:%S ", std::localtime(&timenow)); //Added a space at the end of the formatted string. 

@@ -2,6 +2,11 @@
 #include "gtest/gtest.h"
 #include <cmath>
 
+#ifdef IS_MSVC
+    #pragma comment(lib, "gtest.lib")
+    #pragma comment(lib, "gtest_main.lib")
+#endif
+
 TEST(LogType, validInput)
 {
     LLogger logger;
@@ -145,7 +150,7 @@ TEST(LogLevelColor, validInput)
     bool res = logger.SetLogLevelColor(setLogLevel, newColorCode);
     EXPECT_TRUE(res && logger.GetLogLevelColor(setLogLevel) == newColorCode);
 #else
-    const char* newColorCode = LLogColor::INTENSE_MAGENTA_ON_BLACK;
+    auto newColorCode = LLogColor::INTENSE_MAGENTA_ON_BLACK;
 
     bool res = logger.SetLogLevelColor(setLogLevel, newColorCode);
     EXPECT_TRUE(res && strcmp(logger.GetLogLevelColor(setLogLevel), newColorCode) == 0);
@@ -162,7 +167,7 @@ TEST(LogLevelColor, zeroLogLevel)
     bool res = logger.SetLogLevelColor((LLogLevel)0, newColorCode);
     EXPECT_TRUE(!res && logger.GetLogLevelColor((LLogLevel)0) != newColorCode);
 #else
-    const char* newColorCode = LLogColor::INTENSE_MAGENTA_ON_BLACK;
+    auto newColorCode = LLogColor::INTENSE_MAGENTA_ON_BLACK;
 
     bool res = logger.SetLogLevelColor((LLogLevel)0, newColorCode);
     EXPECT_TRUE(!res && strcmp(logger.GetLogLevelColor((LLogLevel)0), newColorCode) != 0);
@@ -179,7 +184,7 @@ TEST(LogLevelColor, tooLargeLogLevel)
     bool res = logger.SetLogLevelColor((LLogLevel)0, newColorCode);
     EXPECT_TRUE(!res && logger.GetLogLevelColor((LLogLevel)5) != newColorCode);
 #else
-    const char* newColorCode = LLogColor::INTENSE_MAGENTA_ON_BLACK;
+    auto newColorCode = LLogColor::INTENSE_MAGENTA_ON_BLACK;
 
     bool res = logger.SetLogLevelColor((LLogLevel)0, newColorCode);
     EXPECT_TRUE(!res && strcmp(logger.GetLogLevelColor((LLogLevel)6), newColorCode) != 0);
@@ -190,7 +195,7 @@ TEST(LogLevelColor, nullColorCode)
 {
     LLogger logger;
 
-    const char* oldColorCode = logger.GetLogLevelColor(LLogLevel::LOG_INFO);
+    auto oldColorCode = logger.GetLogLevelColor(LLogLevel::LOG_INFO);
     bool res = logger.SetLogLevelColor(LLogLevel::LOG_INFO, nullptr);
 
     EXPECT_TRUE(!res && strcmp(logger.GetLogLevelColor(LLogLevel::LOG_INFO), oldColorCode) == 0);
@@ -200,7 +205,7 @@ TEST(LogLevelColor, emptyString)
 {
     LLogger logger;
 
-    const char* oldColorCode = logger.GetLogLevelColor(LLogLevel::LOG_INFO);
+    auto oldColorCode = logger.GetLogLevelColor(LLogLevel::LOG_INFO);
     bool res = logger.SetLogLevelColor(LLogLevel::LOG_INFO, "");
 
     EXPECT_TRUE(!res && strcmp(logger.GetLogLevelColor(LLogLevel::LOG_INFO), oldColorCode) == 0);
@@ -210,7 +215,7 @@ TEST(LogLevelColor, wordString)
 {
     LLogger logger;
 
-    const char* oldColorCode = logger.GetLogLevelColor(LLogLevel::LOG_INFO);
+    auto oldColorCode = logger.GetLogLevelColor(LLogLevel::LOG_INFO);
     bool res = logger.SetLogLevelColor(LLogLevel::LOG_INFO, "blahblah");
 
     EXPECT_TRUE(!res && strcmp(logger.GetLogLevelColor(LLogLevel::LOG_INFO), oldColorCode) == 0);
@@ -233,7 +238,6 @@ TEST(LogBufferSize, inValidSize)
 {
     LLogger logger;
     std::string dummyStr;
-    
     size_t newSize = LLOGGER_MAX_BUFFER_SIZE + 1;
 
     bool res = logger.SetLogBufferSize(newSize);
