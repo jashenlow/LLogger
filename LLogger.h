@@ -921,7 +921,7 @@ public:
 	* Description    :  Logs the list of texts in argument "msg", and displays them in their respective colors defined by argument "colorCode".
 	* Return         :  True = Successful execution, False = Error detected.
 	*/
-	inline bool LogLineColors(const LLogLevel& level, const std::vector<const char*>& msg, const std::vector<LLogColorCode>& colorCode)
+	inline bool LogLineColors(const LLogLevel& level, const std::initializer_list<const char*>& msg, const std::initializer_list<LLogColorCode>& colorCode)
 	{
 		if (level == LLogLevel::LOG_OFF)
 			return false;
@@ -938,8 +938,6 @@ public:
 
 		if (logLevel >= level)
 		{
-			std::lock_guard<std::mutex> guard(logMutex);
-
 			char preMsgBuffer[64];
 			memset(preMsgBuffer, '\0', sizeof(preMsgBuffer));
 
@@ -968,6 +966,8 @@ public:
 			}
 
 			auto colorIter = colorCode.begin();
+
+			std::lock_guard<std::mutex> guard(logMutex);
 
 			switch (logType)
 			{
@@ -1081,7 +1081,7 @@ public:
 
 		if (logLevel >= level)
 		{
-			std::lock_guard<std::mutex> guard(logMutex);
+			
 
 			va_list args;
 			va_start(args, format);			
@@ -1095,6 +1095,8 @@ public:
 			colorResetLen = strlen(LLogColor::COLOR_RESET);
 #endif
 			size_t sizeRequired = colorCodeLen + TIMESTAMP_BUFF_LEN + prefixLen + msgLen + colorResetLen + 2;  //+ 2 to account for "\n\0".
+
+			std::lock_guard<std::mutex> guard(logMutex);
 
 #ifdef IS_MSVC
 			CONSOLE_SCREEN_BUFFER_INFO  consoleBufferInfo;
