@@ -659,6 +659,8 @@ public:
 		logLevelColors[(uint8_t)LLogLevel::LOG_WARN] = LLogColor::BOLD_YELLOW_ON_BLACK;
 		logLevelColors[(uint8_t)LLogLevel::LOG_INFO] = LLogColor::BOLD_CYAN_ON_BLACK;
 
+		logBuffer.reserve(LLOGGER_DEFAULT_BUFFER_SIZE * 8);
+
 		// Set default values
 		logType = LLogType::CONSOLE;
 		logLevel = LLogLevel::LOG_INFO;
@@ -683,6 +685,8 @@ public:
 		logLevelColors[(uint8_t)LLogLevel::LOG_ERROR] = LLogColor::BOLD_RED_ON_BLACK;
 		logLevelColors[(uint8_t)LLogLevel::LOG_WARN] = LLogColor::BOLD_YELLOW_ON_BLACK;
 		logLevelColors[(uint8_t)LLogLevel::LOG_INFO] = LLogColor::BOLD_CYAN_ON_BLACK;
+
+		logBuffer.reserve(LLOGGER_DEFAULT_BUFFER_SIZE * 8);
 
 		logType = type;
 		logLevel = level;
