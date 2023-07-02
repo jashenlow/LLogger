@@ -1,16 +1,18 @@
 #include "../LLogger.h"
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     LLogger logger;
 
     logger.SetLogType(LLogType::CONSOLE_AND_FILE);
-    //logger.SetShowLogPrefix(false);
+    // logger.SetShowLogPrefix(false);
     logger.SetShowTimeStamp(true);
 
     if (logger.GetLogType() != LLogType::CONSOLE)
         logger.ClearLogFile();
-    
+
+    logger.SetLogLevel(LLogLevel::LOG_DEBUG);
+
     logger.LogLineColors(LLogLevel::LOG_INFO, {"RED_ON_GREEN"}, {LLogColor::RED_ON_GREEN});
     logger.LogLineColors(LLogLevel::LOG_INFO, {"RED_ON_BLUE"}, {LLogColor::RED_ON_BLUE});
     logger.LogLineColors(LLogLevel::LOG_INFO, {"RED_ON_WHITE"}, {LLogColor::RED_ON_WHITE});
@@ -154,7 +156,7 @@ int main(int argc, char** argv)
 #ifdef IS_GNU
     logger.LogLineColors(LLogLevel::LOG_INFO, {"BLACK_ON_BOLD_BLACK"}, {LLogColor::BLACK_ON_BOLD_BLACK});
 #endif
-    printf("--------------------------------------------------------------------\n");    
+    printf("--------------------------------------------------------------------\n");
     logger.LogLineColors(LLogLevel::LOG_INFO, {"BOLD_RED_ON_RED"}, {LLogColor::BOLD_RED_ON_RED});
     logger.LogLineColors(LLogLevel::LOG_INFO, {"BOLD_RED_ON_GREEN"}, {LLogColor::BOLD_RED_ON_GREEN});
     logger.LogLineColors(LLogLevel::LOG_INFO, {"BOLD_RED_ON_BLUE"}, {LLogColor::BOLD_RED_ON_BLUE});
@@ -302,8 +304,8 @@ int main(int argc, char** argv)
 
     logger.LogLineColors(LLogLevel::LOG_INFO, {"RED ", "GREEN ", "BLUE ", "YELLOW"}, {LLogColor::BOLD_RED_ON_BLACK, LLogColor::BOLD_GREEN_ON_BLACK, LLogColor::BOLD_BLUE_ON_BLACK, LLogColor::BOLD_YELLOW_ON_BLACK});
 
-	for (uint8_t i = 0; i < 5; i++)
-        logger.LogLine((LLogLevel)i, "LOG LEVEL %i TEST", i);
+    for (uint8_t i = 0; i < 6; i++)
+        logger.LogLine((LLogLevel)i, "LOG LEVEL %d TEST", i);
 
 #ifdef IS_MSVC
     system("pause");

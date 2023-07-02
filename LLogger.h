@@ -635,10 +635,11 @@ enum class LLogLevel : uint8_t
 	LOG_FATAL = 1,
 	LOG_ERROR = 2,
 	LOG_WARN = 3,
-	LOG_INFO = 4
+	LOG_INFO = 4,
+	LOG_DEBUG = 5
 };
-constexpr std::array<const char *, 5> LLogLevelStr = {"LOG_OFF", "LOG_FATAL", "LOG_ERROR", "LOG_WARN", "LOG_INFO"};
-constexpr std::array<const char *, 5> LLogLevelPrefix = {"[OFF] ", "[FATAL] ", "[ERROR] ", "[WARN] ", "[INFO] "};
+constexpr std::array<const char *, 6> LLogLevelStr = {"LOG_OFF", "LOG_FATAL", "LOG_ERROR", "LOG_WARN", "LOG_INFO", "LOG_DEBUG"};
+constexpr std::array<const char *, 6> LLogLevelPrefix = {"[OFF] ", "[FATAL] ", "[ERROR] ", "[WARN] ", "[INFO] ", "[DEBUG] "};
 
 class LLogger
 {
@@ -658,6 +659,7 @@ public:
 		logLevelColors[(uint8_t)LLogLevel::LOG_ERROR] = LLogColor::BOLD_RED_ON_BLACK;
 		logLevelColors[(uint8_t)LLogLevel::LOG_WARN] = LLogColor::BOLD_YELLOW_ON_BLACK;
 		logLevelColors[(uint8_t)LLogLevel::LOG_INFO] = LLogColor::BOLD_CYAN_ON_BLACK;
+		logLevelColors[(uint8_t)LLogLevel::LOG_DEBUG] = LLogColor::BOLD_GREEN_ON_BLACK;
 
 		logBuffer.reserve(LLOGGER_DEFAULT_BUFFER_SIZE * 8);
 
@@ -685,6 +687,7 @@ public:
 		logLevelColors[(uint8_t)LLogLevel::LOG_ERROR] = LLogColor::BOLD_RED_ON_BLACK;
 		logLevelColors[(uint8_t)LLogLevel::LOG_WARN] = LLogColor::BOLD_YELLOW_ON_BLACK;
 		logLevelColors[(uint8_t)LLogLevel::LOG_INFO] = LLogColor::BOLD_CYAN_ON_BLACK;
+		logLevelColors[(uint8_t)LLogLevel::LOG_DEBUG] = LLogColor::BOLD_GREEN_ON_BLACK;
 
 		logBuffer.reserve(LLOGGER_DEFAULT_BUFFER_SIZE * 8);
 
@@ -822,14 +825,15 @@ public:
 	 *                :  Log level descriptions:
 	 *                       0 - Does not log anything.
 	 *                       1 - Only logs [FATAL] level.
-	 *                       2 - Logs [FATAL] and [ERROR] levels.
-	 *                       3 - Logs [FATAL], [ERROR], and [WARN] levels.
-	 *                       4 - Logs all levels.
+	 *                       2 - Logs [ERROR] level, and all before it.
+	 *                       3 - Logs [WARN] level, and all before it.
+	 *                       4 - Logs [INFO] level, and all before it.
+	 *                       5 - Logs [DEBUG] level, and all before it.
 	 * Return         :  True = Successful execution, False = Error detected.
 	 */
 	bool SetLogLevel(const LLogLevel &newLevel)
 	{
-		if (newLevel > LLogLevel::LOG_INFO)
+		if (newLevel > LLogLevel::LOG_DEBUG)
 		{
 			PrintLoggerError("%s: Invalid verbosity value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)newLevel);
 			return false;
@@ -844,9 +848,10 @@ public:
 	 *                :  Log level descriptions:
 	 *                       0 - Does not log anything.
 	 *                       1 - Only logs [FATAL] level.
-	 *                       2 - Logs [FATAL] and [ERROR] levels.
-	 *                       3 - Logs [FATAL], [ERROR], and [WARN] levels.
-	 *                       4 - Logs all levels.
+	 *                       2 - Logs [ERROR] level, and all before it.
+	 *                       3 - Logs [WARN] level, and all before it.
+	 *                       4 - Logs [INFO] level, and all before it.
+	 *                       5 - Logs [DEBUG] level, and all before it.
 	 * Return         :  Current log level.
 	 */
 	const LLogLevel &GetLogLevel() const
@@ -860,7 +865,7 @@ public:
 	 */
 	bool SetLogLevelColor(const LLogLevel &level, LLogColorCode colorCode)
 	{
-		if (level < LLogLevel::LOG_FATAL || level > LLogLevel::LOG_INFO)
+		if (level < LLogLevel::LOG_FATAL || level > LLogLevel::LOG_DEBUG)
 		{
 			PrintLoggerError("%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
 			return false;
@@ -882,7 +887,7 @@ public:
 	 */
 	LLogColorCode GetLogLevelColor(const LLogLevel &level)
 	{
-		if (level < LLogLevel::LOG_FATAL || level > LLogLevel::LOG_INFO)
+		if (level < LLogLevel::LOG_FATAL || level > LLogLevel::LOG_DEBUG)
 		{
 			PrintLoggerError("%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
 #ifdef IS_MSVC
@@ -929,7 +934,7 @@ public:
 	{
 		if (level == LLogLevel::LOG_OFF)
 			return false;
-		else if (level > LLogLevel::LOG_INFO)
+		else if (level > LLogLevel::LOG_DEBUG)
 		{
 			PrintLoggerError("%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
 			return false;
@@ -1072,7 +1077,7 @@ public:
 	{
 		if (level == LLogLevel::LOG_OFF)
 			return false;
-		else if (level > LLogLevel::LOG_INFO)
+		else if (level > LLogLevel::LOG_DEBUG)
 		{
 			PrintLoggerError("%s: Invalid log level value of %d was set! Ignoring this call...", __FUNCTION__, (uint8_t)level);
 			return false;
@@ -1198,7 +1203,7 @@ private:
 
 	std::string logFilePath;
 	std::ofstream logFile;
-	std::array<LLogColorCode, 5> logLevelColors;
+	std::array<LLogColorCode, 6> logLevelColors;
 #ifdef IS_MSVC
 	WORD defaultConsoleAttr;
 #endif

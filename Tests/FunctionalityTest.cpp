@@ -1,10 +1,10 @@
 #include "../LLogger.h"
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include <cmath>
 
 #ifdef IS_MSVC
-    #pragma comment(lib, "gtest.lib")
-    #pragma comment(lib, "gtest_main.lib")
+#pragma comment(lib, "gtest.lib")
+#pragma comment(lib, "gtest_main.lib")
 #endif
 
 TEST(LogType, validInput)
@@ -18,26 +18,17 @@ TEST(LogType, validInput)
     EXPECT_TRUE(res && newType == logger.GetLogType());
 }
 
-TEST(LogType, negative)
+TEST(LogType, invalidInput)
 {
     LLogger logger;
 
     LLogType defaultType = logger.GetLogType();
+    bool res[2] = {true, true};
 
-    bool res = logger.SetLogType((LLogType)-1);
+    res[0] = logger.SetLogType((LLogType)-1); // Too low
+    res[1] = logger.SetLogType((LLogType)4);  // Too high
 
-    EXPECT_TRUE(!res && defaultType == logger.GetLogType());
-}
-
-TEST(LogType, tooLarge)
-{
-    LLogger logger;
-
-    LLogType defaultType = logger.GetLogType();
-
-    bool res = logger.SetLogType((LLogType)5);
-
-    EXPECT_TRUE(!res && defaultType == logger.GetLogType());
+    EXPECT_TRUE(!res[0] && !res[1] && defaultType == logger.GetLogType());
 }
 
 TEST(LogFilePath, validInput)
@@ -50,24 +41,17 @@ TEST(LogFilePath, validInput)
     EXPECT_TRUE(res && strcmp(testFilePath.c_str(), logger.GetLogFilePath()) == 0);
 }
 
-TEST(LogFilePath, nullInput)
+TEST(LogFilePath, invalidInput)
 {
     LLogger logger;
 
     std::string defaultFilePath = logger.GetLogFilePath();
-    bool res = logger.SetLogFilePath(nullptr);
+    bool res[2] = {true, true};
 
-    EXPECT_TRUE(!res && strcmp(defaultFilePath.c_str(), logger.GetLogFilePath()) == 0);
-}
+    res[0] = logger.SetLogFilePath(nullptr); // nullptr input
+    res[1] = logger.SetLogFilePath("");      // empty string
 
-TEST(LogFilePath, emptyStringInput)
-{
-    LLogger logger;
-
-    std::string defaultFilePath = logger.GetLogFilePath();
-    bool res = logger.SetLogFilePath("");
-
-    EXPECT_TRUE(!res && strcmp(defaultFilePath.c_str(), logger.GetLogFilePath()) == 0);
+    EXPECT_TRUE(!res[0] && !res[1] && strcmp(defaultFilePath.c_str(), logger.GetLogFilePath()) == 0);
 }
 
 TEST(ClearLogFile, ClearLogFileTest)
@@ -77,7 +61,7 @@ TEST(ClearLogFile, ClearLogFileTest)
     logger.SetLogType(LLogType::FILE);
     logger.LogLine(LLogLevel::LOG_INFO, "This is a test logging sentnece.");
     logger.LogLine(LLogLevel::LOG_WARN, "Test print numbers (%d, %d, %d).", 1, 2, 3);
-    
+
     std::ifstream logFile;
     std::stringstream logFileText;
 
@@ -89,7 +73,7 @@ TEST(ClearLogFile, ClearLogFileTest)
     }
     printf("Log File Text (Before): %s\n", logFileText.str().c_str());
 
-    ASSERT_STRNE(logFileText.str().c_str(), "");    //Assert in case the log file is already empty.
+    ASSERT_STRNE(logFileText.str().c_str(), ""); // Assert in case the log file is already empty.
     logFileText.str("");
 
     bool res = logger.ClearLogFile();
@@ -116,26 +100,16 @@ TEST(LogLevel, validInput)
     EXPECT_TRUE(res && newLevel == logger.GetLogLevel());
 }
 
-TEST(LogLevel, negative)
+TEST(LogLevel, invalidInput)
 {
     LLogger logger;
 
     LLogLevel defaultLevel = logger.GetLogLevel();
+    bool res[2] = {true, true};
+    res[0] = logger.SetLogLevel((LLogLevel)-1); // Too low
+    res[1] = logger.SetLogLevel((LLogLevel)10); // Too high
 
-    bool res = logger.SetLogLevel((LLogLevel)-1);
-
-    EXPECT_TRUE(!res && defaultLevel == logger.GetLogLevel());
-}
-
-TEST(LogLevel, tooLarge)
-{
-    LLogger logger;
-
-    LLogLevel defaultLevel = logger.GetLogLevel();
-
-    bool res = logger.SetLogLevel((LLogLevel)10);
-
-    EXPECT_TRUE(!res && defaultLevel == logger.GetLogLevel());
+    EXPECT_TRUE(!res[0] && !res[1] && defaultLevel == logger.GetLogLevel());
 }
 
 TEST(LogLevelColor, validInput)
@@ -143,7 +117,7 @@ TEST(LogLevelColor, validInput)
     LLogger logger;
 
     LLogLevel setLogLevel = LLogLevel::LOG_WARN;
-    
+
 #ifdef IS_MSVC
     LLogColor newColorCode = LLogColor::BOLD_MAGENTA_ON_BLACK;
 
@@ -171,7 +145,7 @@ TEST(LogLevelColor, zeroLogLevel)
 
     bool res = logger.SetLogLevelColor((LLogLevel)0, newColorCode);
     EXPECT_TRUE(!res && strcmp(logger.GetLogLevelColor((LLogLevel)0), newColorCode) != 0);
-#endif    
+#endif
 }
 
 TEST(LogLevelColor, tooLargeLogLevel)
@@ -182,7 +156,7 @@ TEST(LogLevelColor, tooLargeLogLevel)
     LLogColor newColorCode = LLogColor::BOLD_MAGENTA_ON_BLACK;
 
     bool res = logger.SetLogLevelColor((LLogLevel)0, newColorCode);
-    EXPECT_TRUE(!res && logger.GetLogLevelColor((LLogLevel)5) != newColorCode);
+    EXPECT_TRUE(!res && logger.GetLogLevelColor((LLogLevel)6) != newColorCode);
 #else
     auto newColorCode = LLogColor::BOLD_MAGENTA_ON_BLACK;
 
@@ -226,7 +200,7 @@ TEST(LogBufferSize, validSize)
 {
     LLogger logger;
     std::string dummyStr;
-    
+
     size_t newSize = LLOGGER_MAX_BUFFER_SIZE;
 
     bool res = logger.SetLogBufferSize(newSize);
@@ -329,10 +303,8 @@ TEST(LogLine, excludePrefix)
     EXPECT_TRUE(res && prefixIndex == std::string::npos);
 }
 
-
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
-
