@@ -21,10 +21,11 @@ Levels of verbosity:
 | **Verbosity** | **Log Level** | **Description**                                    |
 |:--------------|:--------------|:---------------------------------------------------|
 | 0             |               | Does not log anything, equivalent to an OFF state. |
-| 1             | `[FATAL]`     | Only logs the [FATAL] level messages.              |
-| 2             | `[ERROR]`     | Logs [FATAL] and [ERROR] messages.                 |
-| 3             | `[WARN]`      | Logs [FATAL], [ERROR], and [WARN] messages.        |
-| 4             | `[INFO]`      | Logs all messages.                                 |
+| 1             | `[FATAL]`     | Logs [FATAL] messages.                             |
+| 2             | `[ERROR]`     | Logs [FATAL], [ERROR] messages.                    |
+| 3             | `[WARN]`      | Logs [FATAL], [ERROR], [WARN] messages.            |
+| 4             | `[INFO]`      | Logs [FATAL], [ERROR], [WARN], [INFO] messages.    |
+| 5             | `[DEBUG]`     | Logs all messages.                                 |
 
 Colors are configurable for all log levels by simply calling `SetLogLevelColor`. Information regarding the color codes can be found here:
 
