@@ -1,0 +1,48 @@
+FROM ubuntu:22.04
+ARG DEBIAN_FRONTEND=noninteractive
+
+SHELL ["/bin/bash", "-c"]
+
+# Install dependencies
+RUN apt update && apt install -y --no-install-recommends \
+  software-properties-common \
+  build-essential \
+  sudo \
+  wget \
+  apt-transport-https \
+  shellcheck \
+  nano \
+  openssh-client \
+  net-tools \
+  cmake \
+  curl \
+  gdb \
+  git \
+  git-lfs \
+  python3 \
+  python3-pip
+
+# Install test dependencies
+RUN pip3 install \
+  cpplint \
+  cmakelint
+
+# Add support for git autocompletion
+RUN curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o /etc/profile.d/git-completion.bash && \
+chmod +x /etc/profile.d/git-completion.bash
+RUN echo '# Add autocompletion support for git' >> /etc/bash.bashrc && \
+echo 'if [ -f /etc/profile.d/git-completion.bash ]; then . /etc/profile.d/git-completion.bash; fi' >> /etc/bash.bashrc
+
+# Create user
+ARG USER_NAME=builder
+ARG GROUP_NAME=builder
+
+RUN useradd -ms /bin/bash builder
+RUN usermod -aG sudo builder
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+WORKDIR /home/builder
+USER builder
+
+ENTRYPOINT ["/bin/bash", "-c"]
+CMD ["bash"]

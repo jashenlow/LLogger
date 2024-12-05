@@ -1,0 +1,28 @@
+{
+  "name": "LLogger_dev",
+  "build": { "dockerfile": "Dockerfile-ubuntu" },
+  "runArgs": [
+    "--ipc=host"
+  ],
+  "customizations": {
+    "vscode": {
+        "settings": {
+            "http.proxyStrictSSL": false
+        },
+        "extensions": [
+            "ms-vscode.cpptools",
+            "ms-vscode.cpptools-extension-pack",
+            "twxs.cmake",
+            "mine.cpplint",
+            "yzhang.markdown-all-in-one",
+            "DavidAnson.vscode-markdownlint",
+            "mhutchie.git-graph"
+        ]
+    }
+  },
+  "remoteUser": "builder",
+  "containerUser": "builder",
+  "mounts": ["source=${localEnv:HOME}/.ssh,target=/home/builder/.ssh,type=bind"],
+  "workspaceMount": "source=${localWorkspaceFolder},target=/home/builder/llogger,type=bind",
+  "workspaceFolder": "/home/builder/llogger"
+}
