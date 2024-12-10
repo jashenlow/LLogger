@@ -10,7 +10,7 @@
 using namespace llogger;
 
 class LLoggerTest : public testing::Test {
- public:
+public:
   LLoggerTest() {}
 
   std::array<char, DATETIME_STR_LEN + 1> gen_datetime_str() {
@@ -18,10 +18,10 @@ class LLoggerTest : public testing::Test {
 
     std::time_t test_timenow = std::time(nullptr);
     std::size_t test_time_len = std::strftime(
-      test_datetime.data(),
-      DATETIME_STR_LEN,
-      "[%d-%m-%Y][%H:%M:%S]",
-      std::localtime(&test_timenow));
+        test_datetime.data(),
+        DATETIME_STR_LEN,
+        "[%d-%m-%Y][%H:%M:%S]",
+        std::localtime(&test_timenow));
 
     return test_datetime;
   }
@@ -43,75 +43,75 @@ TEST_F(LLoggerTest, gen_color_code) {
     for (char c_bg = ColorIndex::BLACK; c_bg <= ColorIndex::WHITE; c_bg++) {
       // Foreground Normal, Background Normal
       snprintf(test_color.data(), test_color.size(), "\033[%s%c;%s%cm",
-        test_fg_normal,
-        c_fg,
-        test_bg_normal,
-        c_bg);
+               test_fg_normal,
+               c_fg,
+               test_bg_normal,
+               c_bg);
 
       generated_color =
-        gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, false, false);
+          gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, false, false);
 
       printf("%sTEST_COLOR_FG(N)_BG(N)%s\t%sGEN_COLOR_FG(N)_BG(N)%s\n",
-        test_color.data(),
-        COLOR_RESET,
-        generated_color.data(),
-        COLOR_RESET);
+             test_color.data(),
+             COLOR_RESET,
+             generated_color.data(),
+             COLOR_RESET);
       EXPECT_STREQ(test_color.data(), generated_color.data());
 
       // Foreground Normal, Background Bold
       snprintf(test_color.data(), test_color.size(), "\033[%s%c;%s%cm",
-        test_fg_normal,
-        c_fg,
-        test_bg_bold,
-        c_bg);
+               test_fg_normal,
+               c_fg,
+               test_bg_bold,
+               c_bg);
 
       generated_color =
-        gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, false, true);
+          gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, false, true);
 
       printf("%sTEST_COLOR_FG(N)_BG(B)%s\t%sGEN_COLOR_FG(N)_BG(B)%s\n",
-        test_color.data(),
-        COLOR_RESET,
-        generated_color.data(),
-        COLOR_RESET);
+             test_color.data(),
+             COLOR_RESET,
+             generated_color.data(),
+             COLOR_RESET);
       EXPECT_STREQ(test_color.data(), generated_color.data());
 
       // Foreground Bold, Background Normal
       snprintf(test_color.data(), test_color.size(), "\033[%s%c;%s%cm",
-        test_fg_bold,
-        c_fg,
-        test_bg_normal,
-        c_bg);
+               test_fg_bold,
+               c_fg,
+               test_bg_normal,
+               c_bg);
 
       generated_color =
-        gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, true, false);
+          gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, true, false);
 
       printf("%sTEST_COLOR_FG(B)_BG(N)%s\t%sGEN_COLOR_FG(B)_BG(N)%s\n",
-        test_color.data(),
-        COLOR_RESET,
-        generated_color.data(),
-        COLOR_RESET);
+             test_color.data(),
+             COLOR_RESET,
+             generated_color.data(),
+             COLOR_RESET);
       EXPECT_STREQ(test_color.data(), generated_color.data());
 
       // Foreground Bold, Background Bold
       snprintf(test_color.data(), test_color.size(), "\033[%s%c;%s%cm",
-        test_fg_bold,
-        c_fg,
-        test_bg_bold,
-        c_bg);
+               test_fg_bold,
+               c_fg,
+               test_bg_bold,
+               c_bg);
 
       generated_color =
-        gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, true, true);
+          gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, true, true);
 
       printf("%sTEST_COLOR_FG(B)_BG(B)%s\t%sGEN_COLOR_FG(B)_BG(B)%s\n",
-        test_color.data(),
-        COLOR_RESET,
-        generated_color.data(),
-        COLOR_RESET);
+             test_color.data(),
+             COLOR_RESET,
+             generated_color.data(),
+             COLOR_RESET);
       EXPECT_STREQ(test_color.data(), generated_color.data());
     }
   }
 
-#elif _MSVC
+#elif defined(_MSVC)
 // TODO(Jashen): windows colors.
 #endif
 }
@@ -131,12 +131,12 @@ TEST_F(LLoggerTest, get_set_log_type) {
 
 TEST_F(LLoggerTest, get_set_log_level_color) {
   ColorTextType test_color =
-    gen_color_code(ColorIndex::MAGENTA, ColorIndex::WHITE, true, false);
+      gen_color_code(ColorIndex::MAGENTA, ColorIndex::WHITE, true, false);
 
   for (uint8_t l = 0; l <= LogLevel::LOG_DEBUG; l++) {
     EXPECT_TRUE(
-      logger.set_log_level_color(
-        (LogLevel)l, ColorIndex::MAGENTA, ColorIndex::WHITE, true, false));
+        logger.set_log_level_color(
+            (LogLevel)l, ColorIndex::MAGENTA, ColorIndex::WHITE, true, false));
 
     ColorTextType color = logger.get_log_level_color((LogLevel)l);
     EXPECT_EQ(test_color, color);
@@ -144,30 +144,30 @@ TEST_F(LLoggerTest, get_set_log_level_color) {
 
   // Out-of-bounds handling
   EXPECT_EQ(
-    COLOR_TEXT_TYPE_INIT,
-    logger.get_log_level_color((LogLevel)(LogLevel::LOG_DEBUG + 5)));
+      COLOR_TEXT_TYPE_INIT,
+      logger.get_log_level_color((LogLevel)(LogLevel::LOG_DEBUG + 5)));
 
   EXPECT_FALSE(
-    logger.set_log_level_color(
-      (LogLevel)(LogLevel::LOG_DEBUG + 5),
-      ColorIndex::GREEN,
-      ColorIndex::BLACK,
-      false,
-      false));
+      logger.set_log_level_color(
+          (LogLevel)(LogLevel::LOG_DEBUG + 5),
+          ColorIndex::GREEN,
+          ColorIndex::BLACK,
+          false,
+          false));
 #ifdef _GNU
   EXPECT_FALSE(
-    logger.set_log_level_color(
-      LogLevel::LOG_INFO, (ColorIndex)-20, ColorIndex::BLACK, false, false));
+      logger.set_log_level_color(
+          LogLevel::LOG_INFO, (ColorIndex)-20, ColorIndex::BLACK, false, false));
   EXPECT_FALSE(
-    logger.set_log_level_color(
-      LogLevel::LOG_INFO, ColorIndex::RED, (ColorIndex)-20, false, false));
+      logger.set_log_level_color(
+          LogLevel::LOG_INFO, ColorIndex::RED, (ColorIndex)-20, false, false));
 #endif
   EXPECT_FALSE(
-    logger.set_log_level_color(
-      LogLevel::LOG_INFO, (ColorIndex)20, ColorIndex::BLACK, false, false));
+      logger.set_log_level_color(
+          LogLevel::LOG_INFO, (ColorIndex)20, ColorIndex::BLACK, false, false));
   EXPECT_FALSE(
-    logger.set_log_level_color(
-      LogLevel::LOG_INFO, ColorIndex::RED, (ColorIndex)20, false, false));
+      logger.set_log_level_color(
+          LogLevel::LOG_INFO, ColorIndex::RED, (ColorIndex)20, false, false));
 }
 
 TEST_F(LLoggerTest, log_line_console) {
@@ -185,26 +185,26 @@ TEST_F(LLoggerTest, log_line_console) {
   FILE* original_stdout = stdout;
   stdout = mem_stream;
 
-  // Populate a formatted string to do a direct comparison.
-  #ifdef _GNU
+// Populate a formatted string to do a direct comparison.
+#ifdef _GNU
   snprintf(test_log_buffer.data(),
-    test_log_buffer.size(),
-    "%s%s%s Test console output for LogType::%s.%s\n",
-    logger.get_log_level_color(test_log_level).data(),
-    test_datetime.data(),
-    LOG_LEVEL_PREFIX[test_log_level],
-    LOG_TYPE_STR[logger.get_log_type()],
-    COLOR_RESET);
-#elif _MSVC
+           test_log_buffer.size(),
+           "%s%s%s Test console output for LogType::%s.%s\n",
+           logger.get_log_level_color(test_log_level).data(),
+           test_datetime.data(),
+           LOG_LEVEL_PREFIX[test_log_level],
+           LOG_TYPE_STR[logger.get_log_type()],
+           COLOR_RESET);
+#elif defined(_MSVC)
   // TODO(Jashen): test console output and text color.
 #endif
 
   // Call LLogger::log_line to capture its output.
   EXPECT_TRUE(
-    logger.log_line(
-      test_log_level,
-      "Test console output for LogType::%s.",
-      LOG_TYPE_STR[logger.get_log_type()]));
+      logger.log_line(
+          test_log_level,
+          "Test console output for LogType::%s.",
+          LOG_TYPE_STR[logger.get_log_type()]));
 
   // Restore stdout back to normal.
   fclose(mem_stream);
@@ -234,26 +234,26 @@ TEST_F(LLoggerTest, log_line_console_file) {
   FILE* original_stdout = stdout;
   stdout = mem_stream;
 
-  // Populate a formatted string to do a direct comparison.
-  #ifdef _GNU
+// Populate a formatted string to do a direct comparison.
+#ifdef _GNU
   snprintf(test_log_buffer.data(),
-    test_log_buffer.size(),
-    "%s%s%s Test console output for LogType::%s.%s\n",
-    logger.get_log_level_color(test_log_level).data(),
-    test_datetime.data(),
-    LOG_LEVEL_PREFIX[test_log_level],
-    LOG_TYPE_STR[logger.get_log_type()],
-    COLOR_RESET);
-#elif _MSVC
+           test_log_buffer.size(),
+           "%s%s%s Test console output for LogType::%s.%s\n",
+           logger.get_log_level_color(test_log_level).data(),
+           test_datetime.data(),
+           LOG_LEVEL_PREFIX[test_log_level],
+           LOG_TYPE_STR[logger.get_log_type()],
+           COLOR_RESET);
+#elif defined(_MSVC)
   // TODO(Jashen): test console output and text color.
 #endif
 
   // Call LLogger::log_line to capture its output.
   EXPECT_TRUE(
-    logger.log_line(
-      test_log_level,
-      "Test console output for LogType::%s.",
-      LOG_TYPE_STR[logger.get_log_type()]));
+      logger.log_line(
+          test_log_level,
+          "Test console output for LogType::%s.",
+          LOG_TYPE_STR[logger.get_log_type()]));
 
   // Restore stdout back to normal.
   fclose(mem_stream);
@@ -267,14 +267,14 @@ TEST_F(LLoggerTest, log_line_console_file) {
   std::ifstream test_log_file(LLOGGER_LOG_FILE_PATH);
   EXPECT_TRUE(test_log_file.is_open());
 
-    // Populate a formatted string to do a direct comparison.
+  // Populate a formatted string to do a direct comparison.
   test_log_buffer.fill('\0');
   snprintf(test_log_buffer.data(),
-    test_log_buffer.size(),
-    "%s%s Test console output for LogType::%s.",
-    test_datetime.data(),
-    LOG_LEVEL_PREFIX[test_log_level],
-    LOG_TYPE_STR[logger.get_log_type()]);
+           test_log_buffer.size(),
+           "%s%s Test console output for LogType::%s.",
+           test_datetime.data(),
+           LOG_LEVEL_PREFIX[test_log_level],
+           LOG_TYPE_STR[logger.get_log_type()]);
 
   // Compare the file's contents and delete the file after.
   std::string line;
@@ -298,11 +298,11 @@ TEST_F(LLoggerTest, log_line_file) {
 
   // Populate a formatted string to do a direct comparison.
   snprintf(test_log_buffer.data(),
-    test_log_buffer.size(),
-    "%s%s Test console output for LogType::%s.",
-    test_datetime.data(),
-    LOG_LEVEL_PREFIX[test_log_level],
-    LOG_TYPE_STR[logger.get_log_type()]);
+           test_log_buffer.size(),
+           "%s%s Test console output for LogType::%s.",
+           test_datetime.data(),
+           LOG_LEVEL_PREFIX[test_log_level],
+           LOG_TYPE_STR[logger.get_log_type()]);
 
   // Redirect stdout to a buffer. (To ensure no console output is written.)
   char* print_buffer = nullptr;
@@ -313,10 +313,10 @@ TEST_F(LLoggerTest, log_line_file) {
 
   // Call LLogger::log_line to capture its output.
   EXPECT_TRUE(
-    logger.log_line(
-      test_log_level,
-      "Test console output for LogType::%s.",
-      LOG_TYPE_STR[logger.get_log_type()]));
+      logger.log_line(
+          test_log_level,
+          "Test console output for LogType::%s.",
+          LOG_TYPE_STR[logger.get_log_type()]));
 
   // Open log file and verify its contents.
   std::ifstream test_log_file(LLOGGER_LOG_FILE_PATH);
@@ -344,16 +344,16 @@ TEST_F(LLoggerTest, log_line_file) {
 
 TEST_F(LLoggerTest, log_line_input_handling) {
   EXPECT_FALSE(
-    logger.log_line(
-      LogLevel::LOG_OFF,
-      "test_log_off %d",
-      1));
+      logger.log_line(
+          LogLevel::LOG_OFF,
+          "test_log_off %d",
+          1));
 
   EXPECT_FALSE(
-    logger.log_line(
-      (LogLevel)20,
-      "test_out_of_bounds %d",
-      1));
+      logger.log_line(
+          (LogLevel)20,
+          "test_out_of_bounds %d",
+          1));
 }
 
 TEST_F(LLoggerTest, log_line_colors_console) {
