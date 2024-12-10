@@ -1,310 +1,369 @@
-#include "../LLogger.h"
 #include <gtest/gtest.h>
-#include <cmath>
 
-#ifdef IS_MSVC
-#pragma comment(lib, "gtest.lib")
-#pragma comment(lib, "gtest_main.lib")
-#endif
+#include <cstdio>
+#include <iostream>
+#include <fstream>
+#include <string>
 
-TEST(LogType, validInput)
-{
-    LLogger logger;
+#include "llogger.h"
 
-    LLogType newType = LLogType::CONSOLE_AND_FILE;
+using namespace llogger;
 
-    bool res = logger.SetLogType(newType);
+class LLoggerTest : public testing::Test {
+ public:
+  LLoggerTest() {}
 
-    EXPECT_TRUE(res && newType == logger.GetLogType());
-}
+  std::array<char, DATETIME_STR_LEN + 1> gen_datetime_str() {
+    std::array<char, DATETIME_STR_LEN + 1> test_datetime = {'\0'};
 
-TEST(LogType, invalidInput)
-{
-    LLogger logger;
+    std::time_t test_timenow = std::time(nullptr);
+    std::size_t test_time_len = std::strftime(
+      test_datetime.data(),
+      DATETIME_STR_LEN,
+      "[%d-%m-%Y][%H:%M:%S]",
+      std::localtime(&test_timenow));
 
-    LLogType defaultType = logger.GetLogType();
-    bool res[2] = {true, true};
+    return test_datetime;
+  }
 
-    res[0] = logger.SetLogType((LLogType)-1); // Too low
-    res[1] = logger.SetLogType((LLogType)4);  // Too high
+  LLogger logger;
+};
 
-    EXPECT_TRUE(!res[0] && !res[1] && defaultType == logger.GetLogType());
-}
+TEST_F(LLoggerTest, gen_color_code) {
+#ifdef _GNU
+  // Test color generation
+  ColorTextType test_color = {'\0'};
+  constexpr char test_fg_normal[] = "3";
+  constexpr char test_fg_bold[] = "9";
+  constexpr char test_bg_normal[] = "4";
+  constexpr char test_bg_bold[] = "10";
+  ColorTextType generated_color;
 
-TEST(LogFilePath, validInput)
-{
-    LLogger logger;
+  for (char c_fg = ColorIndex::BLACK; c_fg <= ColorIndex::WHITE; c_fg++) {
+    for (char c_bg = ColorIndex::BLACK; c_bg <= ColorIndex::WHITE; c_bg++) {
+      // Foreground Normal, Background Normal
+      snprintf(test_color.data(), test_color.size(), "\033[%s%c;%s%cm",
+        test_fg_normal,
+        c_fg,
+        test_bg_normal,
+        c_bg);
 
-    std::string testFilePath = "testing/testLog.txt";
-    bool res = logger.SetLogFilePath(testFilePath.c_str());
+      generated_color =
+        gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, false, false);
 
-    EXPECT_TRUE(res && strcmp(testFilePath.c_str(), logger.GetLogFilePath()) == 0);
-}
+      printf("%sTEST_COLOR_FG(N)_BG(N)%s\t%sGEN_COLOR_FG(N)_BG(N)%s\n",
+        test_color.data(),
+        COLOR_RESET,
+        generated_color.data(),
+        COLOR_RESET);
+      EXPECT_STREQ(test_color.data(), generated_color.data());
 
-TEST(LogFilePath, invalidInput)
-{
-    LLogger logger;
+      // Foreground Normal, Background Bold
+      snprintf(test_color.data(), test_color.size(), "\033[%s%c;%s%cm",
+        test_fg_normal,
+        c_fg,
+        test_bg_bold,
+        c_bg);
 
-    std::string defaultFilePath = logger.GetLogFilePath();
-    bool res[2] = {true, true};
+      generated_color =
+        gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, false, true);
 
-    res[0] = logger.SetLogFilePath(nullptr); // nullptr input
-    res[1] = logger.SetLogFilePath("");      // empty string
+      printf("%sTEST_COLOR_FG(N)_BG(B)%s\t%sGEN_COLOR_FG(N)_BG(B)%s\n",
+        test_color.data(),
+        COLOR_RESET,
+        generated_color.data(),
+        COLOR_RESET);
+      EXPECT_STREQ(test_color.data(), generated_color.data());
 
-    EXPECT_TRUE(!res[0] && !res[1] && strcmp(defaultFilePath.c_str(), logger.GetLogFilePath()) == 0);
-}
+      // Foreground Bold, Background Normal
+      snprintf(test_color.data(), test_color.size(), "\033[%s%c;%s%cm",
+        test_fg_bold,
+        c_fg,
+        test_bg_normal,
+        c_bg);
 
-TEST(ClearLogFile, ClearLogFileTest)
-{
-    LLogger logger;
+      generated_color =
+        gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, true, false);
 
-    logger.SetLogType(LLogType::FILE);
-    logger.LogLine(LLogLevel::LOG_INFO, "This is a test logging sentnece.");
-    logger.LogLine(LLogLevel::LOG_WARN, "Test print numbers (%d, %d, %d).", 1, 2, 3);
+      printf("%sTEST_COLOR_FG(B)_BG(N)%s\t%sGEN_COLOR_FG(B)_BG(N)%s\n",
+        test_color.data(),
+        COLOR_RESET,
+        generated_color.data(),
+        COLOR_RESET);
+      EXPECT_STREQ(test_color.data(), generated_color.data());
 
-    std::ifstream logFile;
-    std::stringstream logFileText;
+      // Foreground Bold, Background Bold
+      snprintf(test_color.data(), test_color.size(), "\033[%s%c;%s%cm",
+        test_fg_bold,
+        c_fg,
+        test_bg_bold,
+        c_bg);
 
-    logFile.open(logger.GetLogFilePath(), std::ios::in);
-    if (logFile.is_open())
-    {
-        logFileText << logFile.rdbuf();
-        logFile.close();
+      generated_color =
+        gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, true, true);
+
+      printf("%sTEST_COLOR_FG(B)_BG(B)%s\t%sGEN_COLOR_FG(B)_BG(B)%s\n",
+        test_color.data(),
+        COLOR_RESET,
+        generated_color.data(),
+        COLOR_RESET);
+      EXPECT_STREQ(test_color.data(), generated_color.data());
     }
-    printf("Log File Text (Before): %s\n", logFileText.str().c_str());
+  }
 
-    ASSERT_STRNE(logFileText.str().c_str(), ""); // Assert in case the log file is already empty.
-    logFileText.str("");
-
-    bool res = logger.ClearLogFile();
-
-    logFile.open(logger.GetLogFilePath(), std::ios::in);
-    if (logFile.is_open())
-    {
-        logFileText << logFile.rdbuf();
-        logFile.close();
-    }
-
-    printf("Log File Text (After): %s\n", logFileText.str().c_str());
-    EXPECT_TRUE(res && logFileText.str().empty());
-}
-
-TEST(LogLevel, validInput)
-{
-    LLogger logger;
-
-    LLogLevel newLevel = LLogLevel::LOG_WARN;
-
-    bool res = logger.SetLogLevel(newLevel);
-
-    EXPECT_TRUE(res && newLevel == logger.GetLogLevel());
-}
-
-TEST(LogLevel, invalidInput)
-{
-    LLogger logger;
-
-    LLogLevel defaultLevel = logger.GetLogLevel();
-    bool res[2] = {true, true};
-    res[0] = logger.SetLogLevel((LLogLevel)-1); // Too low
-    res[1] = logger.SetLogLevel((LLogLevel)10); // Too high
-
-    EXPECT_TRUE(!res[0] && !res[1] && defaultLevel == logger.GetLogLevel());
-}
-
-TEST(LogLevelColor, validInput)
-{
-    LLogger logger;
-
-    LLogLevel setLogLevel = LLogLevel::LOG_WARN;
-
-#ifdef IS_MSVC
-    LLogColor newColorCode = LLogColor::BOLD_MAGENTA_ON_BLACK;
-
-    bool res = logger.SetLogLevelColor(setLogLevel, newColorCode);
-    EXPECT_TRUE(res && logger.GetLogLevelColor(setLogLevel) == newColorCode);
-#else
-    auto newColorCode = LLogColor::BOLD_MAGENTA_ON_BLACK;
-
-    bool res = logger.SetLogLevelColor(setLogLevel, newColorCode);
-    EXPECT_TRUE(res && strcmp(logger.GetLogLevelColor(setLogLevel), newColorCode) == 0);
+#elif _MSVC
+// TODO(Jashen): windows colors.
 #endif
 }
 
-TEST(LogLevelColor, zeroLogLevel)
-{
-    LLogger logger;
+TEST_F(LLoggerTest, get_set_log_type) {
+  // Normal inputs
+  for (uint8_t t = LogType::LOG_CONSOLE; t <= LogType::LOG_CONSOLE_FILE; t++) {
+    EXPECT_TRUE(logger.set_log_type((LogType)t));
+    EXPECT_EQ(logger.get_log_type(), t);
+  }
 
-#ifdef IS_MSVC
-    LLogColor newColorCode = LLogColor::BOLD_MAGENTA_ON_BLACK;
+  // Out-of-bounds handling
+  EXPECT_TRUE(logger.set_log_type(LogType::LOG_CONSOLE_FILE));
+  EXPECT_FALSE(logger.set_log_type((LogType)(LogType::LOG_CONSOLE_FILE + 5)));
+  EXPECT_EQ(logger.get_log_type(), LogType::LOG_CONSOLE_FILE);
+}
 
-    bool res = logger.SetLogLevelColor((LLogLevel)0, newColorCode);
-    EXPECT_TRUE(!res && logger.GetLogLevelColor((LLogLevel)0) != newColorCode);
-#else
-    auto newColorCode = LLogColor::BOLD_MAGENTA_ON_BLACK;
+TEST_F(LLoggerTest, get_set_log_level_color) {
+  ColorTextType test_color =
+    gen_color_code(ColorIndex::MAGENTA, ColorIndex::WHITE, true, false);
 
-    bool res = logger.SetLogLevelColor((LLogLevel)0, newColorCode);
-    EXPECT_TRUE(!res && strcmp(logger.GetLogLevelColor((LLogLevel)0), newColorCode) != 0);
+  for (uint8_t l = 0; l <= LogLevel::LOG_DEBUG; l++) {
+    EXPECT_TRUE(
+      logger.set_log_level_color(
+        (LogLevel)l, ColorIndex::MAGENTA, ColorIndex::WHITE, true, false));
+
+    ColorTextType color = logger.get_log_level_color((LogLevel)l);
+    EXPECT_EQ(test_color, color);
+  }
+
+  // Out-of-bounds handling
+  EXPECT_EQ(
+    COLOR_TEXT_TYPE_INIT,
+    logger.get_log_level_color((LogLevel)(LogLevel::LOG_DEBUG + 5)));
+
+  EXPECT_FALSE(
+    logger.set_log_level_color(
+      (LogLevel)(LogLevel::LOG_DEBUG + 5),
+      ColorIndex::GREEN,
+      ColorIndex::BLACK,
+      false,
+      false));
+#ifdef _GNU
+  EXPECT_FALSE(
+    logger.set_log_level_color(
+      LogLevel::LOG_INFO, (ColorIndex)-20, ColorIndex::BLACK, false, false));
+  EXPECT_FALSE(
+    logger.set_log_level_color(
+      LogLevel::LOG_INFO, ColorIndex::RED, (ColorIndex)-20, false, false));
 #endif
+  EXPECT_FALSE(
+    logger.set_log_level_color(
+      LogLevel::LOG_INFO, (ColorIndex)20, ColorIndex::BLACK, false, false));
+  EXPECT_FALSE(
+    logger.set_log_level_color(
+      LogLevel::LOG_INFO, ColorIndex::RED, (ColorIndex)20, false, false));
 }
 
-TEST(LogLevelColor, tooLargeLogLevel)
-{
-    LLogger logger;
+TEST_F(LLoggerTest, log_line_console) {
+  LogLevel test_log_level = LogLevel::LOG_WARN;
+  LogBufferType test_log_buffer = {'\0'};
 
-#ifdef IS_MSVC
-    LLogColor newColorCode = LLogColor::BOLD_MAGENTA_ON_BLACK;
+  logger.set_log_type(LogType::LOG_CONSOLE);
 
-    bool res = logger.SetLogLevelColor((LLogLevel)0, newColorCode);
-    EXPECT_TRUE(!res && logger.GetLogLevelColor((LLogLevel)6) != newColorCode);
-#else
-    auto newColorCode = LLogColor::BOLD_MAGENTA_ON_BLACK;
+  std::array<char, DATETIME_STR_LEN + 1> test_datetime = gen_datetime_str();
 
-    bool res = logger.SetLogLevelColor((LLogLevel)0, newColorCode);
-    EXPECT_TRUE(!res && strcmp(logger.GetLogLevelColor((LLogLevel)6), newColorCode) != 0);
-#endif
-}
-#ifdef IS_GNU
-TEST(LogLevelColor, nullColorCode)
-{
-    LLogger logger;
+  // Redirect stdout to a buffer first.
+  char* print_buffer = nullptr;
+  std::size_t s = 0;
+  FILE* mem_stream = open_memstream(&print_buffer, &s);
+  FILE* original_stdout = stdout;
+  stdout = mem_stream;
 
-    auto oldColorCode = logger.GetLogLevelColor(LLogLevel::LOG_INFO);
-    bool res = logger.SetLogLevelColor(LLogLevel::LOG_INFO, nullptr);
-
-    EXPECT_TRUE(!res && strcmp(logger.GetLogLevelColor(LLogLevel::LOG_INFO), oldColorCode) == 0);
-}
-
-TEST(LogLevelColor, emptyString)
-{
-    LLogger logger;
-
-    auto oldColorCode = logger.GetLogLevelColor(LLogLevel::LOG_INFO);
-    bool res = logger.SetLogLevelColor(LLogLevel::LOG_INFO, "");
-
-    EXPECT_TRUE(!res && strcmp(logger.GetLogLevelColor(LLogLevel::LOG_INFO), oldColorCode) == 0);
-}
-
-TEST(LogLevelColor, wordString)
-{
-    LLogger logger;
-
-    auto oldColorCode = logger.GetLogLevelColor(LLogLevel::LOG_INFO);
-    bool res = logger.SetLogLevelColor(LLogLevel::LOG_INFO, "blahblah");
-
-    EXPECT_TRUE(!res && strcmp(logger.GetLogLevelColor(LLogLevel::LOG_INFO), oldColorCode) == 0);
-}
+  // Populate a formatted string to do a direct comparison.
+  #ifdef _GNU
+  snprintf(test_log_buffer.data(),
+    test_log_buffer.size(),
+    "%s%s%s Test console output for LogType::%s.%s\n",
+    logger.get_log_level_color(test_log_level).data(),
+    test_datetime.data(),
+    LOG_LEVEL_PREFIX[test_log_level],
+    LOG_TYPE_STR[logger.get_log_type()],
+    COLOR_RESET);
+#elif _MSVC
+  // TODO(Jashen): test console output and text color.
 #endif
 
-TEST(LogBufferSize, validSize)
-{
-    LLogger logger;
-    std::string dummyStr;
+  // Call LLogger::log_line to capture its output.
+  EXPECT_TRUE(
+    logger.log_line(
+      test_log_level,
+      "Test console output for LogType::%s.",
+      LOG_TYPE_STR[logger.get_log_type()]));
 
-    size_t newSize = LLOGGER_MAX_BUFFER_SIZE;
+  // Restore stdout back to normal.
+  fclose(mem_stream);
+  stdout = original_stdout;
+  std::string print_buffer_str(print_buffer, s);
+  free(print_buffer);
 
-    bool res = logger.SetLogBufferSize(newSize);
+  EXPECT_STREQ(test_log_buffer.data(), print_buffer_str.c_str());
 
-    EXPECT_TRUE(res && logger.GetLogBufferSize() == newSize);
+  // Verify that no log file was created.
+  std::ifstream test_log_file(LLOGGER_LOG_FILE_PATH);
+  EXPECT_FALSE(test_log_file.is_open());
 }
 
-TEST(LogBufferSize, inValidSize)
-{
-    LLogger logger;
-    std::string dummyStr;
-    size_t newSize = LLOGGER_MAX_BUFFER_SIZE + 1;
+TEST_F(LLoggerTest, log_line_console_file) {
+  LogLevel test_log_level = LogLevel::LOG_WARN;
+  LogBufferType test_log_buffer = {'\0'};
 
-    bool res = logger.SetLogBufferSize(newSize);
+  logger.set_log_type(LogType::LOG_CONSOLE_FILE);
 
-    EXPECT_TRUE(!res && logger.GetLogBufferSize() < newSize);
+  std::array<char, DATETIME_STR_LEN + 1> test_datetime = gen_datetime_str();
+
+  // Redirect stdout to a buffer first.
+  char* print_buffer = nullptr;
+  std::size_t s = 0;
+  FILE* mem_stream = open_memstream(&print_buffer, &s);
+  FILE* original_stdout = stdout;
+  stdout = mem_stream;
+
+  // Populate a formatted string to do a direct comparison.
+  #ifdef _GNU
+  snprintf(test_log_buffer.data(),
+    test_log_buffer.size(),
+    "%s%s%s Test console output for LogType::%s.%s\n",
+    logger.get_log_level_color(test_log_level).data(),
+    test_datetime.data(),
+    LOG_LEVEL_PREFIX[test_log_level],
+    LOG_TYPE_STR[logger.get_log_type()],
+    COLOR_RESET);
+#elif _MSVC
+  // TODO(Jashen): test console output and text color.
+#endif
+
+  // Call LLogger::log_line to capture its output.
+  EXPECT_TRUE(
+    logger.log_line(
+      test_log_level,
+      "Test console output for LogType::%s.",
+      LOG_TYPE_STR[logger.get_log_type()]));
+
+  // Restore stdout back to normal.
+  fclose(mem_stream);
+  stdout = original_stdout;
+  std::string print_buffer_str(print_buffer, s);
+  free(print_buffer);
+
+  EXPECT_STREQ(test_log_buffer.data(), print_buffer_str.c_str());
+
+  // Open log file and verify its contents.
+  std::ifstream test_log_file(LLOGGER_LOG_FILE_PATH);
+  EXPECT_TRUE(test_log_file.is_open());
+
+    // Populate a formatted string to do a direct comparison.
+  test_log_buffer.fill('\0');
+  snprintf(test_log_buffer.data(),
+    test_log_buffer.size(),
+    "%s%s Test console output for LogType::%s.",
+    test_datetime.data(),
+    LOG_LEVEL_PREFIX[test_log_level],
+    LOG_TYPE_STR[logger.get_log_type()]);
+
+  // Compare the file's contents and delete the file after.
+  std::string line;
+  while (std::getline(test_log_file, line)) {
+    EXPECT_STREQ(test_log_buffer.data(), line.c_str());
+  }
+
+  if (test_log_file.is_open()) {
+    test_log_file.close();
+    EXPECT_EQ(std::remove(LLOGGER_LOG_FILE_PATH), 0);
+  }
 }
 
-TEST(LogLine, validString)
-{
-    LLogger logger;
-    std::string testStr("This is a test print string.");
+TEST_F(LLoggerTest, log_line_file) {
+  LogLevel test_log_level = LogLevel::LOG_WARN;
+  LogBufferType test_log_buffer = {'\0'};
 
-    EXPECT_TRUE(logger.LogLine(LLogLevel::LOG_INFO, testStr.c_str()));
+  logger.set_log_type(LogType::LOG_FILE);
+
+  std::array<char, DATETIME_STR_LEN + 1> test_datetime = gen_datetime_str();
+
+  // Populate a formatted string to do a direct comparison.
+  snprintf(test_log_buffer.data(),
+    test_log_buffer.size(),
+    "%s%s Test console output for LogType::%s.",
+    test_datetime.data(),
+    LOG_LEVEL_PREFIX[test_log_level],
+    LOG_TYPE_STR[logger.get_log_type()]);
+
+  // Redirect stdout to a buffer. (To ensure no console output is written.)
+  char* print_buffer = nullptr;
+  std::size_t s = 0;
+  FILE* mem_stream = open_memstream(&print_buffer, &s);
+  FILE* original_stdout = stdout;
+  stdout = mem_stream;
+
+  // Call LLogger::log_line to capture its output.
+  EXPECT_TRUE(
+    logger.log_line(
+      test_log_level,
+      "Test console output for LogType::%s.",
+      LOG_TYPE_STR[logger.get_log_type()]));
+
+  // Open log file and verify its contents.
+  std::ifstream test_log_file(LLOGGER_LOG_FILE_PATH);
+  EXPECT_TRUE(test_log_file.is_open());
+
+  // Compare the file's contents and delete the file after.
+  std::string line;
+  while (std::getline(test_log_file, line)) {
+    EXPECT_STREQ(test_log_buffer.data(), line.c_str());
+  }
+
+  if (test_log_file.is_open()) {
+    test_log_file.close();
+    EXPECT_EQ(std::remove(LLOGGER_LOG_FILE_PATH), 0);
+  }
+
+  // Verify that no console output was written.
+  fclose(mem_stream);
+  stdout = original_stdout;
+  std::string print_buffer_str(print_buffer, s);
+  free(print_buffer);
+
+  EXPECT_TRUE(print_buffer_str.empty());
 }
 
-TEST(LogLine, bufferResize)
-{
-    LLogger logger;
-    std::string testStr(LLOGGER_DEFAULT_BUFFER_SIZE + 1, 'a');
+TEST_F(LLoggerTest, log_line_input_handling) {
+  EXPECT_FALSE(
+    logger.log_line(
+      LogLevel::LOG_OFF,
+      "test_log_off %d",
+      1));
 
-    bool res = logger.LogLine(LLogLevel::LOG_INFO, testStr.c_str());
-
-    EXPECT_TRUE(res && logger.GetLogBufferSize() == (LLOGGER_DEFAULT_BUFFER_SIZE + LLOGGER_BUFFER_STEP_SIZE));
+  EXPECT_FALSE(
+    logger.log_line(
+      (LogLevel)20,
+      "test_out_of_bounds %d",
+      1));
 }
 
-TEST(LogLine, LOG_OFF)
-{
-    LLogger logger;
-    std::string testStr("This is a test print string.");
+TEST_F(LLoggerTest, log_line_colors_console) {
+  constexpr std::array<ColorTextType, 6> test_multi_colors = {
+    gen_color_code(ColorIndex::WHITE, ColorIndex::RED, true, true),  // FATAL
+    gen_color_code(ColorIndex::RED, ColorIndex::BLACK, true, false),  // ERROR
+    gen_color_code(ColorIndex::YELLOW, ColorIndex::BLACK, true, false),  // WARN
+    gen_color_code(ColorIndex::CYAN, ColorIndex::BLACK, true, false),  // INFO
+    gen_color_code(ColorIndex::GREEN, ColorIndex::BLACK, true, false)  // DEBUG
+  };
 
-    EXPECT_FALSE(logger.LogLine(LLogLevel::LOG_OFF, testStr.c_str()));
-}
-
-TEST(LogLine, nullptrString)
-{
-    LLogger logger;
-
-    EXPECT_FALSE(logger.LogLine(LLogLevel::LOG_INFO, nullptr));
-}
-
-TEST(LogLine, emptyString)
-{
-    LLogger logger;
-
-    EXPECT_FALSE(logger.LogLine(LLogLevel::LOG_INFO, ""));
-}
-
-TEST(LogLine, includePrefix)
-{
-    LLogger logger;
-
-    logger.SetLogType(LLogType::CONSOLE_AND_FILE);
-    logger.SetShowLogPrefix(true);
-    bool res = logger.LogLine(LLogLevel::LOG_INFO, "This is a test print string.");
-
-    std::ifstream logFile;
-    logFile.open(logger.GetLogFilePath());
-
-    ASSERT_TRUE(logFile.is_open());
-    std::stringstream ss;
-    ss << logFile.rdbuf();
-    logFile.close();
-    logger.ClearLogFile();
-
-    size_t prefixIndex = ss.str().find(LLogLevelPrefix[(uint8_t)LLogLevel::LOG_INFO]);
-
-    EXPECT_TRUE(res && prefixIndex != std::string::npos);
-}
-
-TEST(LogLine, excludePrefix)
-{
-    LLogger logger;
-
-    logger.SetLogType(LLogType::CONSOLE_AND_FILE);
-    logger.SetShowLogPrefix(false);
-    bool res = logger.LogLine(LLogLevel::LOG_INFO, "This is a test print string.");
-
-    std::ifstream logFile;
-    logFile.open(logger.GetLogFilePath());
-
-    ASSERT_TRUE(logFile.is_open());
-    std::stringstream ss;
-    ss << logFile.rdbuf();
-    logFile.close();
-    logger.ClearLogFile();
-
-    size_t prefixIndex = ss.str().find(LLogLevelPrefix[(uint8_t)LLogLevel::LOG_INFO]);
-
-    EXPECT_TRUE(res && prefixIndex == std::string::npos);
-}
-
-int main(int argc, char **argv)
-{
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+  // TODO(Jashen): write tests for multi-color.
 }
