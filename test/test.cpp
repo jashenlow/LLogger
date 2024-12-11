@@ -7,6 +7,12 @@
 
 #include "llogger.h"
 
+#ifdef _MSVC
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#define ConsoleHandle GetStdHandle(STD_OUTPUT_HANDLE)
+#endif
+
 using namespace llogger;
 
 class LLoggerTest : public testing::Test {
@@ -27,7 +33,35 @@ class LLoggerTest : public testing::Test {
   }
 
   LLogger logger;
+
+#ifdef _MSVC
+  uint16_t console_attr_original = 0;
+
+  int redirect_stdout_to_file(FILE** file) {
+    int original_stdout = _dup(fileno(stdout));
+    *file = freopen("output.out", "w", stdout);
+
+    return original_stdout;
+  }
+
+  void restore_stdout_and_read_redirected_file(
+    int original_stdout, std::string& output_line) {
+    std::fflush(stdout);
+    _dup2(original_stdout, fileno(stdout));
+    _close(original_stdout);
+    
+    std::ifstream console_output_file("output.out");
+    std::getline(console_output_file, output_line);
+  
+    if (console_output_file.is_open()) {
+      console_output_file.close();
+      std::remove("output.out");
+    }
+  }
+#endif
 };
+
+// ---------------------------------------------
 
 TEST_F(LLoggerTest, gen_color_code) {
 #ifdef _GNU
@@ -110,9 +144,73 @@ TEST_F(LLoggerTest, gen_color_code) {
       EXPECT_STREQ(test_color.data(), generated_color.data());
     }
   }
-
 #elif defined(_MSVC)
-// TODO(Jashen): windows colors.
+  // Test color generation
+  ColorTextType test_color = 0;
+  constexpr uint16_t test_fg_bold = 0x0008;
+  constexpr uint16_t test_bg_bold = test_fg_bold << 4;
+  ColorTextType generated_color;
+
+  // Store current console attributes
+  CONSOLE_SCREEN_BUFFER_INFO console_buffer_info;
+  GetConsoleScreenBufferInfo(ConsoleHandle, &console_buffer_info);
+  console_attr_original = console_buffer_info.wAttributes;
+
+  for (uint16_t c_fg = ColorIndex::BLACK; c_fg <= ColorIndex::WHITE; c_fg++) {
+    for (uint16_t c_bg = ColorIndex::BLACK; c_bg <= ColorIndex::WHITE; c_bg++) {
+      // Foreground Normal, Background Normal
+      test_color = (c_bg << 4) | 0x0000 | c_fg | 0x0000;
+      generated_color =
+        gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, false, false);
+      
+      SetConsoleTextAttribute(ConsoleHandle, test_color);
+      printf("TEST_COLOR_FG(N)_BG(N)\t");
+      SetConsoleTextAttribute(ConsoleHandle, generated_color);
+      printf("GEN_COLOR_FG(N)_BG(N)\n");
+      SetConsoleTextAttribute(ConsoleHandle, console_attr_original);
+
+      EXPECT_EQ(test_color, generated_color);
+
+      // Foreground Normal, Background Bold
+      test_color = (c_bg << 4) | test_bg_bold | c_fg | 0x0000;
+      generated_color =
+        gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, false, true);
+      
+      SetConsoleTextAttribute(ConsoleHandle, test_color);
+      printf("TEST_COLOR_FG(N)_BG(B)\t");
+      SetConsoleTextAttribute(ConsoleHandle, generated_color);
+      printf("GEN_COLOR_FG(N)_BG(B)\n");
+      SetConsoleTextAttribute(ConsoleHandle, console_attr_original);
+
+      EXPECT_EQ(test_color, generated_color);
+
+      // Foreground Bold, Background Normal
+      test_color = (c_bg << 4) | 0x0000 | c_fg | test_fg_bold;
+      generated_color =
+        gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, true, false);
+      
+      SetConsoleTextAttribute(ConsoleHandle, test_color);
+      printf("TEST_COLOR_FG(B)_BG(N)\t");
+      SetConsoleTextAttribute(ConsoleHandle, generated_color);
+      printf("GEN_COLOR_FG(B)_BG(N)\n");
+      SetConsoleTextAttribute(ConsoleHandle, console_attr_original);
+
+      EXPECT_EQ(test_color, generated_color);
+
+      // Foreground Bold, Background Bold
+      test_color = (c_bg << 4) | test_bg_bold | c_fg | test_fg_bold;
+      generated_color =
+        gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, true, true);
+      
+      SetConsoleTextAttribute(ConsoleHandle, test_color);
+      printf("TEST_COLOR_FG(B)_BG(B)\t");
+      SetConsoleTextAttribute(ConsoleHandle, generated_color);
+      printf("GEN_COLOR_FG(B)_BG(B)\n");
+      SetConsoleTextAttribute(ConsoleHandle, console_attr_original);
+
+      EXPECT_EQ(test_color, generated_color);
+    }
+  }
 #endif
 }
 
@@ -179,11 +277,16 @@ TEST_F(LLoggerTest, log_line_console) {
   std::array<char, DATETIME_STR_LEN + 1> test_datetime = gen_datetime_str();
 
   // Redirect stdout to a buffer first.
+#ifdef _GNU
   char* print_buffer = nullptr;
   std::size_t s = 0;
   FILE* mem_stream = open_memstream(&print_buffer, &s);
   FILE* original_stdout = stdout;
   stdout = mem_stream;
+#elif defined(_MSVC)
+  FILE* file_ptr = nullptr;
+  int original_stdout_fd = redirect_stdout_to_file(&file_ptr);
+#endif
 
 // Populate a formatted string to do a direct comparison.
 #ifdef _GNU
@@ -196,7 +299,13 @@ TEST_F(LLoggerTest, log_line_console) {
     LOG_TYPE_STR[logger.get_log_type()],
     COLOR_RESET);
 #elif defined(_MSVC)
-  // TODO(Jashen): test console output and text color.
+  // Test console output only, since color is set separately.
+  snprintf(test_log_buffer.data(),
+    test_log_buffer.size(),
+    "%s%s Test console output for LogType::%s.",
+    test_datetime.data(),
+    LOG_LEVEL_PREFIX[test_log_level],
+    LOG_TYPE_STR[logger.get_log_type()]);
 #endif
 
   // Call LLogger::log_line to capture its output.
@@ -207,10 +316,16 @@ TEST_F(LLoggerTest, log_line_console) {
       LOG_TYPE_STR[logger.get_log_type()]));
 
   // Restore stdout back to normal.
+#ifdef _GNU
   fclose(mem_stream);
   stdout = original_stdout;
   std::string print_buffer_str(print_buffer, s);
   free(print_buffer);
+#elif defined(_MSVC)
+  std::string print_buffer_str;
+  restore_stdout_and_read_redirected_file(
+    original_stdout_fd, print_buffer_str);
+#endif
 
   EXPECT_STREQ(test_log_buffer.data(), print_buffer_str.c_str());
 
@@ -228,11 +343,16 @@ TEST_F(LLoggerTest, log_line_console_file) {
   std::array<char, DATETIME_STR_LEN + 1> test_datetime = gen_datetime_str();
 
   // Redirect stdout to a buffer first.
+#ifdef _GNU
   char* print_buffer = nullptr;
   std::size_t s = 0;
   FILE* mem_stream = open_memstream(&print_buffer, &s);
   FILE* original_stdout = stdout;
   stdout = mem_stream;
+#elif defined(_MSVC)
+  FILE* file_ptr = nullptr;
+  int original_stdout_fd = redirect_stdout_to_file(&file_ptr);
+#endif
 
 // Populate a formatted string to do a direct comparison.
 #ifdef _GNU
@@ -245,7 +365,13 @@ TEST_F(LLoggerTest, log_line_console_file) {
     LOG_TYPE_STR[logger.get_log_type()],
     COLOR_RESET);
 #elif defined(_MSVC)
-  // TODO(Jashen): test console output and text color.
+  // Test console output only, since color is set separately.
+  snprintf(test_log_buffer.data(),
+    test_log_buffer.size(),
+    "%s%s Test console output for LogType::%s.",
+    test_datetime.data(),
+    LOG_LEVEL_PREFIX[test_log_level],
+    LOG_TYPE_STR[logger.get_log_type()]);
 #endif
 
   // Call LLogger::log_line to capture its output.
@@ -256,10 +382,16 @@ TEST_F(LLoggerTest, log_line_console_file) {
       LOG_TYPE_STR[logger.get_log_type()]));
 
   // Restore stdout back to normal.
+#ifdef _GNU
   fclose(mem_stream);
   stdout = original_stdout;
   std::string print_buffer_str(print_buffer, s);
   free(print_buffer);
+#elif defined(_MSVC)
+  std::string print_buffer_str;
+  restore_stdout_and_read_redirected_file(
+    original_stdout_fd, print_buffer_str);
+#endif
 
   EXPECT_STREQ(test_log_buffer.data(), print_buffer_str.c_str());
 
@@ -295,7 +427,7 @@ TEST_F(LLoggerTest, log_line_file) {
   logger.set_log_type(LogType::LOG_FILE);
 
   std::array<char, DATETIME_STR_LEN + 1> test_datetime = gen_datetime_str();
-
+  
   // Populate a formatted string to do a direct comparison.
   snprintf(test_log_buffer.data(),
     test_log_buffer.size(),
@@ -305,11 +437,16 @@ TEST_F(LLoggerTest, log_line_file) {
     LOG_TYPE_STR[logger.get_log_type()]);
 
   // Redirect stdout to a buffer. (To ensure no console output is written.)
+#ifdef _GNU
   char* print_buffer = nullptr;
   std::size_t s = 0;
   FILE* mem_stream = open_memstream(&print_buffer, &s);
   FILE* original_stdout = stdout;
   stdout = mem_stream;
+#elif defined(_MSVC)
+  FILE* file_ptr = nullptr;
+  int original_stdout_fd = redirect_stdout_to_file(&file_ptr);
+#endif
 
   // Call LLogger::log_line to capture its output.
   EXPECT_TRUE(
@@ -334,10 +471,16 @@ TEST_F(LLoggerTest, log_line_file) {
   }
 
   // Verify that no console output was written.
+#ifdef _GNU
   fclose(mem_stream);
   stdout = original_stdout;
   std::string print_buffer_str(print_buffer, s);
   free(print_buffer);
+#elif defined(_MSVC)
+  std::string print_buffer_str;
+  restore_stdout_and_read_redirected_file(
+    original_stdout_fd, print_buffer_str);
+#endif
 
   EXPECT_TRUE(print_buffer_str.empty());
 }

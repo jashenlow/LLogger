@@ -205,7 +205,6 @@ bool fg_bold = true, bool bg_bold = false) {
     - Background(Bold) = (Foreground(Bold) << 4).
     - Format: <background_color> | <background_boldness> | <foreground_color> | <foreground_boldness>.
   */
-
   uint16_t bg_boldness = (bg_bold) ? 0x0008 << 4 : 0x0000;
   uint16_t fg_boldness = (fg_bold) ? 0x0008 : 0x0000;
 

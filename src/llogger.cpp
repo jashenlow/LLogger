@@ -25,8 +25,8 @@
 #ifdef _GNU
 #include <sys/param.h>
 #elif defined(_MSVC)
-#include <Winbase.h>
-#include <wincon.h>
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 #define ConsoleHandle GetStdHandle(STD_OUTPUT_HANDLE)
 #endif
 

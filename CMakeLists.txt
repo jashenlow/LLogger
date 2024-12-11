@@ -50,6 +50,13 @@ elseif(LIBRARY_TYPE MATCHES Shared)
   add_library(llogger SHARED ${PROJECT_SOURCE_DIR}/src/llogger.cpp)
 endif()
 
+if(${CMAKE_SYSTEM_NAME} MATCHES Windows)
+  if(${CMAKE_BUILD_TYPE} MATCHES Release)
+    target_link_options(llogger PRIVATE "/LTCG")
+  endif()
+endif()
+
+
 # export library
 set(CMAKE_EXPORT_PACKAGE_REGISTRY ON)
 export(TARGETS llogger FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake)
