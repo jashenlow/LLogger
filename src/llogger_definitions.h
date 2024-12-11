@@ -160,12 +160,12 @@ ColorIndex fg_color, ColorIndex bg_color,
 bool fg_bold = true, bool bg_bold = false) {
 #ifdef _GNU
   /*
-  NOTES for ANSI colcor codes:
+  NOTES for ANSI color codes:
     - Prefix characters = "\033[".
     - Foreground(Normal) = '3'.
     - Foreground(Bold) = '9'.
-    - Foreground(Normal) = '4'.
-    - Foreground(Bold) = '10'.
+    - Background(Normal) = '4'.
+    - Background(Bold) = '10'.
     - Closing character = "m".
     - Format: "\033[<fg_boldness><fg_color>;<bg_boldness><bg_color>m".
   */
