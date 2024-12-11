@@ -197,7 +197,19 @@ bool fg_bold = true, bool bg_bold = false) {
 
   return color_code;
 #elif defined(_MSVC)
-  // TODO(Jashen): generate windows color codes.
+  /*
+  NOTES for MSVC color codes:
+    - Foreground color = ColorIndex
+    - Background color = (ColorIndex << 4).
+    - Foreground(Bold) = 0x0008.
+    - Background(Bold) = (Foreground(Bold) << 4).
+    - Format: <background_color> | <background_boldness> | <foreground_color> | <foreground_boldness>.
+  */
+
+  uint16_t bg_boldness = (bg_bold) ? 0x0008 << 4 : 0x0000;
+  uint16_t fg_boldness = (fg_bold) ? 0x0008 : 0x0000;
+
+  return (bg_color << 4) | bg_boldness | fg_color | fg_boldness;
 #endif
 }
 // ---------------------------------------------
