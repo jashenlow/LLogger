@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <memory>
 
 #include "llogger.h"
 
@@ -36,10 +37,34 @@ class LLoggerTest : public testing::Test {
 
 #ifdef _MSVC
   uint16_t console_attr_original = 0;
+#endif
 
-  int redirect_stdout_to_file(FILE** file) {
+#ifdef _GNU
+  FILE* redirect_stdout_to_buffer(
+    FILE*& original_stdout,
+    char*& buff,
+    std::size_t& buff_size) {
+    FILE* stream_handle = open_memstream(&buff, &buff_size);
+    original_stdout = stdout;
+    stdout = stream_handle;
+
+    return stream_handle;
+  }
+
+  void restore_stdout(
+    FILE* original_stdout,
+    FILE* stream_handle,
+    char** buff_ptr,
+    std::string& buff_str) {
+    fclose(stream_handle);
+    stdout = original_stdout;
+    buff_str = *buff_ptr;
+    delete[] *buff_ptr;
+  }
+#elif defined(_MSVC)
+  int redirect_stdout_to_file() {
     int original_stdout = _dup(fileno(stdout));
-    *file = freopen("output.out", "w", stdout);
+    FILE* file = freopen("output.out", "w", stdout);
 
     return original_stdout;
   }
@@ -279,13 +304,12 @@ TEST_F(LLoggerTest, log_line_console) {
   // Redirect stdout to a buffer first.
 #ifdef _GNU
   char* print_buffer = nullptr;
-  std::size_t s = 0;
-  FILE* mem_stream = open_memstream(&print_buffer, &s);
-  FILE* original_stdout = stdout;
-  stdout = mem_stream;
+  std::size_t buffer_size = 0;
+  FILE* original_stdout = nullptr;
+  FILE* mem_stream =
+    redirect_stdout_to_buffer(original_stdout, print_buffer, buffer_size);
 #elif defined(_MSVC)
-  FILE* file_ptr = nullptr;
-  int original_stdout_fd = redirect_stdout_to_file(&file_ptr);
+  int original_stdout_fd = redirect_stdout_to_file();
 #endif
 
 // Populate a formatted string to do a direct comparison.
@@ -316,13 +340,11 @@ TEST_F(LLoggerTest, log_line_console) {
       LOG_TYPE_STR[logger.get_log_type()]));
 
   // Restore stdout back to normal.
-#ifdef _GNU
-  fclose(mem_stream);
-  stdout = original_stdout;
-  std::string print_buffer_str(print_buffer, s);
-  free(print_buffer);
-#elif defined(_MSVC)
   std::string print_buffer_str;
+#ifdef _GNU
+  restore_stdout(
+    original_stdout, mem_stream, &print_buffer, print_buffer_str);
+#elif defined(_MSVC)
   restore_stdout_and_read_redirected_file(
     original_stdout_fd, print_buffer_str);
 #endif
@@ -345,13 +367,12 @@ TEST_F(LLoggerTest, log_line_console_file) {
   // Redirect stdout to a buffer first.
 #ifdef _GNU
   char* print_buffer = nullptr;
-  std::size_t s = 0;
-  FILE* mem_stream = open_memstream(&print_buffer, &s);
-  FILE* original_stdout = stdout;
-  stdout = mem_stream;
+  std::size_t buffer_size = 0;
+  FILE* original_stdout = nullptr;
+  FILE* mem_stream =
+    redirect_stdout_to_buffer(original_stdout, print_buffer, buffer_size);
 #elif defined(_MSVC)
-  FILE* file_ptr = nullptr;
-  int original_stdout_fd = redirect_stdout_to_file(&file_ptr);
+  int original_stdout_fd = redirect_stdout_to_file();
 #endif
 
 // Populate a formatted string to do a direct comparison.
@@ -382,13 +403,11 @@ TEST_F(LLoggerTest, log_line_console_file) {
       LOG_TYPE_STR[logger.get_log_type()]));
 
   // Restore stdout back to normal.
-#ifdef _GNU
-  fclose(mem_stream);
-  stdout = original_stdout;
-  std::string print_buffer_str(print_buffer, s);
-  free(print_buffer);
-#elif defined(_MSVC)
   std::string print_buffer_str;
+#ifdef _GNU
+  restore_stdout(
+    original_stdout, mem_stream, &print_buffer, print_buffer_str);
+#elif defined(_MSVC)
   restore_stdout_and_read_redirected_file(
     original_stdout_fd, print_buffer_str);
 #endif
@@ -427,7 +446,7 @@ TEST_F(LLoggerTest, log_line_file) {
   logger.set_log_type(LogType::LOG_FILE);
 
   std::array<char, DATETIME_STR_LEN + 1> test_datetime = gen_datetime_str();
-  
+
   // Populate a formatted string to do a direct comparison.
   snprintf(test_log_buffer.data(),
     test_log_buffer.size(),
@@ -439,13 +458,12 @@ TEST_F(LLoggerTest, log_line_file) {
   // Redirect stdout to a buffer. (To ensure no console output is written.)
 #ifdef _GNU
   char* print_buffer = nullptr;
-  std::size_t s = 0;
-  FILE* mem_stream = open_memstream(&print_buffer, &s);
-  FILE* original_stdout = stdout;
-  stdout = mem_stream;
+  std::size_t buffer_size = 0;
+  FILE* original_stdout = nullptr;
+  FILE* mem_stream =
+    redirect_stdout_to_buffer(original_stdout, print_buffer, buffer_size);
 #elif defined(_MSVC)
-  FILE* file_ptr = nullptr;
-  int original_stdout_fd = redirect_stdout_to_file(&file_ptr);
+  int original_stdout_fd = redirect_stdout_to_file();
 #endif
 
   // Call LLogger::log_line to capture its output.
@@ -471,13 +489,11 @@ TEST_F(LLoggerTest, log_line_file) {
   }
 
   // Verify that no console output was written.
-#ifdef _GNU
-  fclose(mem_stream);
-  stdout = original_stdout;
-  std::string print_buffer_str(print_buffer, s);
-  free(print_buffer);
-#elif defined(_MSVC)
   std::string print_buffer_str;
+#ifdef _GNU
+  restore_stdout(
+    original_stdout, mem_stream, &print_buffer, print_buffer_str);
+#elif defined(_MSVC)
   restore_stdout_and_read_redirected_file(
     original_stdout_fd, print_buffer_str);
 #endif
