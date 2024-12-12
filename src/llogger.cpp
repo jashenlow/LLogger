@@ -373,6 +373,11 @@ bool LLogger::write_to_file(char* start, char* end) {
   log_file.open(LLOGGER_LOG_FILE_PATH, std::ios::app);
 
   if (!log_file.is_open()) {
+    printf(
+      "%s: Unable to open log file %s.\n",
+      __FUNCTION__,
+      LLOGGER_LOG_FILE_PATH);
+
     return false;
   }
   log_file.write(start, end - start);
