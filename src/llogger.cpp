@@ -108,8 +108,11 @@ const LogLevel& level, const char* format, ...) {
   char* buffer_ptr = log_buffer.data();
 
   // Append the color code to the buffer.
-  if (!set_color_code(level, &buffer_ptr)) {
-    return false;
+  if (log_type == LogType::LOG_CONSOLE ||
+    log_type == LogType::LOG_CONSOLE_FILE) {
+    if (!set_color_code(level, &buffer_ptr)) {
+      return false;
+    }
   }
 
   char* log_file_start_ptr = buffer_ptr;
@@ -202,8 +205,11 @@ const std::initializer_list<ColorTextType>& color_list) {
   }
 
   // Append the color code based on log level to the buffer.
-  if (!set_color_code(level, &buffer_ptr)) {
-    return false;
+  if (log_type == LogType::LOG_CONSOLE ||
+    log_type == LogType::LOG_CONSOLE_FILE) {
+    if (!set_color_code(level, &buffer_ptr)) {
+      return false;
+    }
   }
 
   char* log_file_start_ptr = buffer_ptr;
