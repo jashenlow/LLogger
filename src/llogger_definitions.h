@@ -47,8 +47,6 @@
 namespace llogger {
 // Verify the data types of preprocessors.
 static_assert(true, LLOGGER_LOG_FILE_PATH);
-// "Error: LLOGGER_LOG_FILE_PATH is not a C-String type."
-// static constexpr auto INT_MAX_STR_LEN = LLOGGER_MAX_STR_LEN;
 static_assert(std::is_integral<decltype(LLOGGER_MAX_STR_LEN)>::value,
 "Error: LLOGGER_MAX_STR_LEN is not an integer type.");
 static_assert(LLOGGER_MAX_STR_LEN > 0,
