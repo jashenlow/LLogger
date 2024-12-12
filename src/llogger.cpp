@@ -66,7 +66,7 @@ bool LLogger::set_log_file_path(std::string_view path) {
 }
 
 bool LLogger::set_log_file_path(const char *path) {
-  if (path == nullptr) {
+  if (path == nullptr || path == "") {
     return false;
   }
 
