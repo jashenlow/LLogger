@@ -239,14 +239,35 @@ TEST_F(LLoggerTest, gen_color_code) {
 #endif
 }
 
+TEST_F(LLoggerTest, get_set_log_file_path) {
+  // Default value.
+  EXPECT_STREQ(logger.get_log_file_path().data(), LLOGGER_LOG_FILE_PATH);
+
+  // Invalid input.
+  EXPECT_FALSE(logger.set_log_file_path(std::string{}));
+  EXPECT_STREQ(logger.get_log_file_path().data(), LLOGGER_LOG_FILE_PATH);
+  EXPECT_FALSE(logger.set_log_file_path(""));
+  EXPECT_STREQ(logger.get_log_file_path().data(), LLOGGER_LOG_FILE_PATH);
+  EXPECT_FALSE(logger.set_log_file_path(nullptr));
+  EXPECT_STREQ(logger.get_log_file_path().data(), LLOGGER_LOG_FILE_PATH);
+
+  // Valid string.
+  EXPECT_TRUE(logger.set_log_file_path(std::string("test_log_path.txt")));
+  EXPECT_STREQ(logger.get_log_file_path().data(), "test_log_path.txt");
+  EXPECT_TRUE(logger.set_log_file_path("test_log_path.txt"));
+  EXPECT_STREQ(logger.get_log_file_path().data(), "test_log_path.txt");
+}
+
 TEST_F(LLoggerTest, get_set_log_type) {
-  // Normal inputs
+  // Default value.
+
+  // Normal inputs.
   for (uint8_t t = LogType::LOG_CONSOLE; t <= LogType::LOG_CONSOLE_FILE; t++) {
     EXPECT_TRUE(logger.set_log_type((LogType)t));
     EXPECT_EQ(logger.get_log_type(), t);
   }
 
-  // Out-of-bounds handling
+  // Out-of-bounds handling.
   EXPECT_TRUE(logger.set_log_type(LogType::LOG_CONSOLE_FILE));
   EXPECT_FALSE(logger.set_log_type((LogType)(LogType::LOG_CONSOLE_FILE + 5)));
   EXPECT_EQ(logger.get_log_type(), LogType::LOG_CONSOLE_FILE);
@@ -265,7 +286,7 @@ TEST_F(LLoggerTest, get_set_log_level_color) {
     EXPECT_EQ(test_color, color);
   }
 
-  // Out-of-bounds handling
+  // Out-of-bounds handling.
   EXPECT_EQ(
     COLOR_TEXT_TYPE_INIT,
     logger.get_log_level_color((LogLevel)(LogLevel::LOG_DEBUG + 5)));
@@ -502,17 +523,25 @@ TEST_F(LLoggerTest, log_line_file) {
 }
 
 TEST_F(LLoggerTest, log_line_input_handling) {
+  // LogLevel::LOG_OFF.
   EXPECT_FALSE(
     logger.log_line(
       LogLevel::LOG_OFF,
       "test_log_off %d",
       1));
 
+  // Out-of-bounds for LogLevel value.
   EXPECT_FALSE(
     logger.log_line(
       (LogLevel)20,
       "test_out_of_bounds %d",
       1));
+
+  // TODO(Jashen): Invalid log file path.
+
+
+  // TODO(Jashen): Input string too long.
+
 }
 
 TEST_F(LLoggerTest, log_line_colors_console) {
