@@ -32,6 +32,12 @@ class LLogger {
   LLogger();
   ~LLogger();
 
+  std::string_view get_log_file_path();
+
+  bool set_log_file_path(std::string_view path);
+
+  bool set_log_file_path(const char* path);
+
   LogType get_log_type();
 
   bool set_log_type(const LogType& set_type);
@@ -57,6 +63,7 @@ class LLogger {
   LLogger& operator=(const LLogger&) = delete;
 
   std::array<ColorTextType, 6> log_level_colors{};
+  std::string log_file_path;
   LogType log_type;
   std::mutex log_mutex;
 #ifdef _MSVC

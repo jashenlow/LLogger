@@ -38,6 +38,7 @@
 namespace llogger {
 LLogger::LLogger() {
   // Set defaults
+  log_file_path = LLOGGER_LOG_FILE_PATH;
   log_type = LogType::LOG_CONSOLE;
   log_level_colors = DEFAULT_COLORS;
 
@@ -50,6 +51,28 @@ LLogger::LLogger() {
 }
 
 LLogger::~LLogger() {}
+
+std::string_view LLogger::get_log_file_path() {
+  return log_file_path;
+}
+
+bool LLogger::set_log_file_path(std::string_view path) {
+  if (path.empty()) {
+    return false;
+  }
+
+  log_file_path = path;
+  return true;
+}
+
+bool LLogger::set_log_file_path(const char *path) {
+  if (path == nullptr) {
+    return false;
+  }
+
+  log_file_path = path;
+  return true;
+}
 
 LogType LLogger::get_log_type() {
   return log_type;
@@ -194,13 +217,13 @@ const std::initializer_list<ColorTextType>& color_list) {
   // Open log file if required.
   if (log_type == LogType::LOG_FILE ||
     log_type == LogType::LOG_CONSOLE_FILE) {
-    log_file.open(LLOGGER_LOG_FILE_PATH, std::ios::app);
+    log_file.open(log_file_path.c_str(), std::ios::app);
 
     if (!log_file.is_open()) {
       printf(
         "%s: Unable to open log file %s.\n",
         __FUNCTION__,
-        LLOGGER_LOG_FILE_PATH);
+        log_file_path.c_str());
     }
   }
 
@@ -376,13 +399,13 @@ bool LLogger::write_to_file(char* start, char* end) {
   }
 
   std::ofstream log_file;
-  log_file.open(LLOGGER_LOG_FILE_PATH, std::ios::app);
+  log_file.open(log_file_path.c_str(), std::ios::app);
 
   if (!log_file.is_open()) {
     printf(
       "%s: Unable to open log file %s.\n",
       __FUNCTION__,
-      LLOGGER_LOG_FILE_PATH);
+      log_file_path.c_str());
 
     return false;
   }
