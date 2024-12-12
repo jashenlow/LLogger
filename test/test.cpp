@@ -260,6 +260,7 @@ TEST_F(LLoggerTest, get_set_log_file_path) {
 
 TEST_F(LLoggerTest, get_set_log_type) {
   // Default value.
+  EXPECT_EQ(logger.get_log_type(), LogType::LOG_CONSOLE);
 
   // Normal inputs.
   for (uint8_t t = LogType::LOG_CONSOLE; t <= LogType::LOG_CONSOLE_FILE; t++) {
@@ -274,6 +275,12 @@ TEST_F(LLoggerTest, get_set_log_type) {
 }
 
 TEST_F(LLoggerTest, get_set_log_level_color) {
+  // Default values.
+  for (uint8_t i = LogLevel::LOG_OFF; i < LogLevel::LOG_DEBUG; i++) {
+    EXPECT_EQ(logger.get_log_level_color((LogLevel)i), DEFAULT_COLORS[i]);
+  }
+  
+  // Normal inputs.
   ColorTextType test_color =
     gen_color_code(ColorIndex::MAGENTA, ColorIndex::WHITE, true, false);
 
