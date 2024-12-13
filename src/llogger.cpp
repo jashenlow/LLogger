@@ -323,7 +323,7 @@ bool LLogger::set_color_code(const LogLevel& level, char** buff) {
   SetConsoleTextAttribute(ConsoleHandle, log_level_colors[level]);
 #endif
 
-   return true;
+  return true;
 }
 
 bool LLogger::reset_color(char** buff) {
