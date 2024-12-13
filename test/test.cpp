@@ -74,10 +74,10 @@ class LLoggerTest : public testing::Test {
     std::fflush(stdout);
     _dup2(original_stdout, fileno(stdout));
     _close(original_stdout);
-    
+
     std::ifstream console_output_file("output.out");
     std::getline(console_output_file, output_line);
-  
+
     if (console_output_file.is_open()) {
       console_output_file.close();
       std::remove("output.out");
@@ -187,7 +187,7 @@ TEST_F(LLoggerTest, gen_color_code) {
       test_color = (c_bg << 4) | 0x0000 | c_fg | 0x0000;
       generated_color =
         gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, false, false);
-      
+
       SetConsoleTextAttribute(ConsoleHandle, test_color);
       printf("TEST_COLOR_FG(N)_BG(N)\t");
       SetConsoleTextAttribute(ConsoleHandle, generated_color);
@@ -200,7 +200,7 @@ TEST_F(LLoggerTest, gen_color_code) {
       test_color = (c_bg << 4) | test_bg_bold | c_fg | 0x0000;
       generated_color =
         gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, false, true);
-      
+
       SetConsoleTextAttribute(ConsoleHandle, test_color);
       printf("TEST_COLOR_FG(N)_BG(B)\t");
       SetConsoleTextAttribute(ConsoleHandle, generated_color);
@@ -213,7 +213,7 @@ TEST_F(LLoggerTest, gen_color_code) {
       test_color = (c_bg << 4) | 0x0000 | c_fg | test_fg_bold;
       generated_color =
         gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, true, false);
-      
+
       SetConsoleTextAttribute(ConsoleHandle, test_color);
       printf("TEST_COLOR_FG(B)_BG(N)\t");
       SetConsoleTextAttribute(ConsoleHandle, generated_color);
@@ -226,7 +226,7 @@ TEST_F(LLoggerTest, gen_color_code) {
       test_color = (c_bg << 4) | test_bg_bold | c_fg | test_fg_bold;
       generated_color =
         gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, true, true);
-      
+
       SetConsoleTextAttribute(ConsoleHandle, test_color);
       printf("TEST_COLOR_FG(B)_BG(B)\t");
       SetConsoleTextAttribute(ConsoleHandle, generated_color);
@@ -279,7 +279,7 @@ TEST_F(LLoggerTest, get_set_log_level_color) {
   for (uint8_t i = LogLevel::LOG_OFF; i < LogLevel::LOG_DEBUG; i++) {
     EXPECT_EQ(logger.get_log_level_color((LogLevel)i), DEFAULT_COLORS[i]);
   }
-  
+
   // Normal inputs.
   ColorTextType test_color =
     gen_color_code(ColorIndex::MAGENTA, ColorIndex::WHITE, true, false);
@@ -544,11 +544,72 @@ TEST_F(LLoggerTest, log_line_input_handling) {
       "test_out_of_bounds %d",
       1));
 
-  // TODO(Jashen): Invalid log file path.
+  // Invalid log file path.
+  logger.set_log_file_path("sdfb/sdfgbsdfth/sf");
+  logger.set_log_type(LogType::LOG_CONSOLE_FILE);
+  EXPECT_FALSE(
+    logger.log_line(LogLevel::LOG_WARN, "test_invalid_log_file_path."));
+  logger.set_log_type(LogType::LOG_FILE);
+  EXPECT_FALSE(
+    logger.log_line(LogLevel::LOG_WARN, "test_invalid_log_file_path."));
 
+  // Input string too long.
+  logger.set_log_type(LogType::LOG_CONSOLE_FILE);
+  logger.set_log_file_path(LLOGGER_LOG_FILE_PATH);
+  std::string too_long_str(LLOGGER_MAX_STR_LEN + 1, 'A');
+  std::string too_long_str_truncated(LLOGGER_MAX_STR_LEN, 'A');
 
-  // TODO(Jashen): Input string too long.
+    // Temporarily redirect stdout to a buffer.
+  #ifdef _GNU
+  char* print_buffer = nullptr;
+  std::size_t buffer_size = 0;
+  FILE* original_stdout = nullptr;
+  FILE* mem_stream =
+    redirect_stdout_to_buffer(original_stdout, print_buffer, buffer_size);
+#elif defined(_MSVC)
+  int original_stdout_fd = redirect_stdout_to_file();
+#endif
 
+  EXPECT_TRUE(logger.log_line(LogLevel::LOG_WARN, "%s", too_long_str.c_str()));
+
+    // Restore stdout back to normal.
+  std::string print_buffer_str;
+#ifdef _GNU
+  restore_stdout(
+    original_stdout, mem_stream, &print_buffer, print_buffer_str);
+#elif defined(_MSVC)
+  restore_stdout_and_read_redirected_file(
+    original_stdout_fd, print_buffer_str);
+#endif
+
+    // Verify that the console output has been truncated.
+  std::size_t input_str_start_index = print_buffer_str.find_first_of(' ') + 1;
+  std::size_t input_str_end_index = print_buffer_str.rfind('A');
+  std::string print_buffer_input_text_only =
+    print_buffer_str.substr(
+      input_str_start_index, input_str_end_index - input_str_start_index + 1);
+  EXPECT_STREQ(
+    too_long_str_truncated.c_str(), print_buffer_input_text_only.c_str());
+
+    // Verify that the log file output has also been truncated.
+  std::ifstream test_log_file(LLOGGER_LOG_FILE_PATH);
+  EXPECT_TRUE(test_log_file.is_open());
+
+  std::string line;
+  std::getline(test_log_file, line);
+
+  input_str_start_index = line.find_first_of(' ') + 1;
+  input_str_end_index = line.rfind('A');
+  print_buffer_input_text_only = line.substr(
+    input_str_start_index, input_str_end_index - input_str_start_index + 1);
+
+  EXPECT_STREQ(
+    too_long_str_truncated.data(), print_buffer_input_text_only.c_str());
+
+  if (test_log_file.is_open()) {
+    test_log_file.close();
+    EXPECT_EQ(std::remove(LLOGGER_LOG_FILE_PATH), 0);
+  }
 }
 
 TEST_F(LLoggerTest, log_line_colors_console) {
