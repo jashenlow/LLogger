@@ -31,8 +31,8 @@
 #endif
 
 #include <cstdio>
+#include <cstdlib>
 #include <cstdarg>
-#include <fstream>
 #include <utility>
 
 namespace llogger {
@@ -210,16 +210,16 @@ const std::initializer_list<ColorTextType>& color_list) {
     return false;
   }
 
-  std::ofstream log_file;
+  FILE* log_file = nullptr;
   std::array<char, 64> prefix_buffer = {'\0'};
   char* buffer_ptr = prefix_buffer.data();
 
   // Open log file if required.
   if (log_type == LogType::LOG_FILE ||
     log_type == LogType::LOG_CONSOLE_FILE) {
-    log_file.open(log_file_path.c_str(), std::ios::app);
+    log_file = fopen(log_file_path.c_str(), "a");
 
-    if (!log_file.is_open()) {
+    if (log_file == nullptr) {
       printf(
         "%s: Unable to open log file %s.\n",
         __FUNCTION__,
@@ -272,13 +272,21 @@ const std::initializer_list<ColorTextType>& color_list) {
       return false;
     }
 #endif
-    if (log_type == LogType::LOG_CONSOLE_FILE && log_file.is_open()) {
-      log_file.write(log_file_start_ptr, log_file_end_ptr - log_file_start_ptr);
+    if (log_type == LogType::LOG_CONSOLE_FILE && log_file != nullptr) {
+      fwrite(
+        log_file_start_ptr,
+        sizeof(char),
+        log_file_end_ptr - log_file_start_ptr,
+        log_file);
     }
 
   } else if (log_type == LogType::LOG_FILE) {
-    if (log_file.is_open()) {
-      log_file.write(log_file_start_ptr, log_file_end_ptr - log_file_start_ptr);
+    if (log_file != nullptr) {
+      fwrite(
+        log_file_start_ptr,
+        sizeof(char),
+        log_file_end_ptr - log_file_start_ptr,
+        log_file);
     }
   }
 
@@ -286,21 +294,21 @@ const std::initializer_list<ColorTextType>& color_list) {
     log_type == LogType::LOG_CONSOLE_FILE) {
     print_multi_color(text_list, color_list);
 
-    if (log_type == LogType::LOG_CONSOLE_FILE && log_file.is_open()) {
+    if (log_type == LogType::LOG_CONSOLE_FILE && log_file != nullptr) {
       for (const char* text : text_list) {
-        log_file << text;
+        fwrite(text, sizeof(char), strlen(text), log_file);
       }
 
-      log_file << "\n";
-      log_file.close();
+      fwrite("\n", sizeof(char), 1, log_file);
+      fclose(log_file);
     }
-  } else if (log_type == LogType::LOG_FILE && log_file.is_open()) {
+  } else if (log_type == LogType::LOG_FILE && log_file != nullptr) {
     for (const char* text : text_list) {
-      log_file << text;
+      fwrite(text, sizeof(char), strlen(text), log_file);
     }
 
-    log_file << "\n";
-    log_file.close();
+    fwrite("\n", sizeof(char), 1, log_file);
+    fclose(log_file);
   }
 
   return true;
@@ -398,10 +406,9 @@ bool LLogger::write_to_file(char* start, char* end) {
     return false;
   }
 
-  std::ofstream log_file;
-  log_file.open(log_file_path.c_str(), std::ios::app);
+  FILE* log_file = fopen(log_file_path.c_str(), "a");
 
-  if (!log_file.is_open()) {
+  if (log_file == nullptr) {
     printf(
       "%s: Unable to open log file %s.\n",
       __FUNCTION__,
@@ -409,9 +416,10 @@ bool LLogger::write_to_file(char* start, char* end) {
 
     return false;
   }
-  log_file.write(start, end - start);
-  log_file << "\n";
-  log_file.close();
+
+  fwrite(start, sizeof(char), end - start, log_file);
+  fwrite("\n", sizeof(char), 1, log_file);
+  fclose(log_file);
 
   return true;
 }
