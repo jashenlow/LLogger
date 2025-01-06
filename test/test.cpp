@@ -4,7 +4,6 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <memory>
 
 #include "llogger.h"
 
@@ -582,33 +581,36 @@ TEST_F(LLoggerTest, log_line_input_handling) {
     original_stdout_fd, print_buffer_str);
 #endif
 
+  {
     // Verify that the console output has been truncated.
-  std::size_t input_str_start_index = print_buffer_str.find_first_of(' ') + 1;
-  std::size_t input_str_end_index = print_buffer_str.rfind('A');
-  std::string print_buffer_input_text_only =
-    print_buffer_str.substr(
+    std::size_t input_str_start_index = print_buffer_str.find_first_of(' ') + 1;
+    std::size_t input_str_end_index = print_buffer_str.rfind('A');
+    std::string print_buffer_input_text_only = print_buffer_str.substr(
       input_str_start_index, input_str_end_index - input_str_start_index + 1);
-  EXPECT_STREQ(
-    too_long_str_truncated.c_str(), print_buffer_input_text_only.c_str());
+    EXPECT_STREQ(
+      too_long_str_truncated.c_str(), print_buffer_input_text_only.c_str());
+  }
 
+  {
     // Verify that the log file output has also been truncated.
-  std::ifstream test_log_file(LLOGGER_LOG_FILE_PATH);
-  EXPECT_TRUE(test_log_file.is_open());
+    std::ifstream test_log_file(LLOGGER_LOG_FILE_PATH);
+    EXPECT_TRUE(test_log_file.is_open());
 
-  std::string line;
-  std::getline(test_log_file, line);
+    std::string line;
+    std::getline(test_log_file, line);
 
-  input_str_start_index = line.find_first_of(' ') + 1;
-  input_str_end_index = line.rfind('A');
-  print_buffer_input_text_only = line.substr(
-    input_str_start_index, input_str_end_index - input_str_start_index + 1);
+    std::size_t input_str_start_index = line.find_first_of(' ') + 1;
+    std::size_t input_str_end_index = line.rfind('A');
+    std::string print_buffer_input_text_only = line.substr(
+      input_str_start_index, input_str_end_index - input_str_start_index + 1);
 
-  EXPECT_STREQ(
-    too_long_str_truncated.data(), print_buffer_input_text_only.c_str());
+    EXPECT_STREQ(
+      too_long_str_truncated.data(), print_buffer_input_text_only.c_str());
 
-  if (test_log_file.is_open()) {
-    test_log_file.close();
-    EXPECT_EQ(std::remove(LLOGGER_LOG_FILE_PATH), 0);
+    if (test_log_file.is_open()) {
+      test_log_file.close();
+      EXPECT_EQ(std::remove(LLOGGER_LOG_FILE_PATH), 0);
+    }
   }
 }
 
@@ -622,4 +624,57 @@ TEST_F(LLoggerTest, log_line_colors_console) {
   };
 
   // TODO(Jashen): write tests for multi-color.
+}
+
+TEST_F(LLoggerTest, log_line_colors_input_handling) {
+  constexpr std::array<ColorTextType, 3> test_multi_colors = {
+    gen_color_code(ColorIndex::RED, ColorIndex::BLACK, true, false),
+    gen_color_code(ColorIndex::GREEN, ColorIndex::BLACK, true, false),
+    gen_color_code(ColorIndex::BLUE, ColorIndex::BLACK, true, false)
+  };
+
+  // LogLevel::LOG_OFF.
+  EXPECT_FALSE(
+    logger.log_line_colors(
+      LogLevel::LOG_OFF,
+      {"red", "green", "blue"},
+      {test_multi_colors[0], test_multi_colors[1], test_multi_colors[2]}));
+
+  // Out-of-bounds for LogLevel value.
+  EXPECT_FALSE(
+    logger.log_line_colors(
+      (LogLevel)20,
+      {"red", "green", "blue"},
+      {test_multi_colors[0], test_multi_colors[1], test_multi_colors[2]}));
+
+  // Invalid log file path. (Will not return false)
+  logger.set_log_file_path("gfhjdfhsdf/sdfg/rt/rg");
+
+  logger.set_log_type(LogType::LOG_CONSOLE_FILE);
+  EXPECT_TRUE(
+    logger.log_line_colors(
+      LogLevel::LOG_WARN,
+      {"red", "green", "blue"},
+      {test_multi_colors[0], test_multi_colors[1], test_multi_colors[2]}));
+    // Log file should not exist.
+  {
+    std::ifstream test_log_file(LLOGGER_LOG_FILE_PATH);
+    EXPECT_FALSE(test_log_file.is_open());
+  }
+
+  logger.set_log_type(LogType::LOG_FILE);
+  EXPECT_TRUE(
+    logger.log_line_colors(
+      LogLevel::LOG_WARN,
+      {"red", "green", "blue"},
+      {test_multi_colors[0], test_multi_colors[1], test_multi_colors[2]}));
+    // Log file should not exist.
+  {
+    std::ifstream test_log_file(LLOGGER_LOG_FILE_PATH);
+    EXPECT_FALSE(test_log_file.is_open());
+  }
+
+  // TODO(Jashen): word count < color count.
+
+  // TODO(Jashen): word count > color count.
 }
