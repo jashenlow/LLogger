@@ -617,10 +617,10 @@ TEST_F(LLoggerTest, log_line_input_handling) {
 TEST_F(LLoggerTest, log_line_colors_console) {
   constexpr std::array<ColorTextType, 6> test_multi_colors = {
     gen_color_code(ColorIndex::WHITE, ColorIndex::RED, true, true),  // FATAL
-    gen_color_code(ColorIndex::RED, ColorIndex::BLACK, true, false),  // ERROR
-    gen_color_code(ColorIndex::YELLOW, ColorIndex::BLACK, true, false),  // WARN
-    gen_color_code(ColorIndex::CYAN, ColorIndex::BLACK, true, false),  // INFO
-    gen_color_code(ColorIndex::GREEN, ColorIndex::BLACK, true, false)  // DEBUG
+    gen_color_code(ColorIndex::RED),  // ERROR
+    gen_color_code(ColorIndex::YELLOW),  // WARN
+    gen_color_code(ColorIndex::CYAN),  // INFO
+    gen_color_code(ColorIndex::GREEN)  // DEBUG
   };
 
   // TODO(Jashen): write tests for multi-color.
@@ -628,9 +628,9 @@ TEST_F(LLoggerTest, log_line_colors_console) {
 
 TEST_F(LLoggerTest, log_line_colors_input_handling) {
   constexpr std::array<ColorTextType, 3> test_multi_colors = {
-    gen_color_code(ColorIndex::RED, ColorIndex::BLACK, true, false),
-    gen_color_code(ColorIndex::GREEN, ColorIndex::BLACK, true, false),
-    gen_color_code(ColorIndex::BLUE, ColorIndex::BLACK, true, false)
+    gen_color_code(ColorIndex::RED),
+    gen_color_code(ColorIndex::GREEN),
+    gen_color_code(ColorIndex::BLUE)
   };
 
   // LogLevel::LOG_OFF.

@@ -154,6 +154,48 @@ using ColorTextType = uint16_t;
 #endif
 
 constexpr ColorTextType gen_color_code(
+ColorIndex fg_color, bool fg_bold = true) {
+#ifdef _GNU
+  /*
+  NOTES for ANSI color codes:
+    - Prefix characters = "\033[".
+    - Foreground(Normal) = '3'.
+    - Foreground(Bold) = '9'.
+    - Closing character = "m".
+    - Format: "\033[0;<fg_boldness><fg_color>m".
+  */
+  ColorTextType color_code = COLOR_TEXT_TYPE_INIT;
+  std::size_t index = 0;
+
+  // Append prefix
+  color_code[index++] = '\033';
+  color_code[index++] = '[';
+  color_code[index++] = '0';
+  color_code[index++] = ';';
+  // Append foreground boldness
+  color_code[index++] = (fg_bold) ? '9' : '3';
+  // Append foreground color
+  color_code[index++] = fg_color;
+  // Append closing character
+  color_code[index++] = 'm';
+
+  color_code[index++] = '\0';
+
+  return color_code;
+#elif defined(_MSVC)
+  /*
+  NOTES for MSVC color codes:
+    - Foreground color = ColorIndex
+    - Foreground(Bold) = 0x0008.
+    - Format: <foreground_color> | <foreground_boldness>.
+  */
+  uint16_t fg_boldness = (fg_bold) ? 0x0008 : 0x0000;
+
+  return fg_color | fg_boldness;
+#endif
+}
+
+constexpr ColorTextType gen_color_code(
 ColorIndex fg_color, ColorIndex bg_color,
 bool fg_bold = true, bool bg_bold = false) {
 #ifdef _GNU
@@ -215,10 +257,10 @@ bool fg_bold = true, bool bg_bold = false) {
 static constexpr std::array<ColorTextType, 6> DEFAULT_COLORS = {
   COLOR_TEXT_TYPE_INIT,  // OFF
   gen_color_code(ColorIndex::WHITE, ColorIndex::RED, true, true),  // FATAL
-  gen_color_code(ColorIndex::RED, ColorIndex::BLACK, true, false),  // ERROR
-  gen_color_code(ColorIndex::YELLOW, ColorIndex::BLACK, true, false),  // WARN
-  gen_color_code(ColorIndex::CYAN, ColorIndex::BLACK, true, false),  // INFO
-  gen_color_code(ColorIndex::GREEN, ColorIndex::BLACK, true, false)  // DEBUG
+  gen_color_code(ColorIndex::RED),  // ERROR
+  gen_color_code(ColorIndex::YELLOW),  // WARN
+  gen_color_code(ColorIndex::CYAN),  // INFO
+  gen_color_code(ColorIndex::GREEN)  // DEBUG
 };
 // ---------------------------------------------
 }  // namespace llogger
