@@ -94,8 +94,8 @@ enum ColorIndex : uint16_t {
 // ---------------------------------------------
 
 // Constants ---------------------------------------------
-static constexpr std::size_t LOG_LEVEL_PREFIX_MAX_LEN = 7;
-static constexpr std::size_t DATETIME_STR_LEN = 23;
+static constexpr uint16_t LOG_LEVEL_PREFIX_MAX_LEN = 7;
+static constexpr uint16_t DATETIME_STR_LEN = 23;
 static constexpr std::array<const char*, 3> LOG_TYPE_STR = {
   "LOG_CONSOLE",
   "LOG_FILE",
@@ -118,8 +118,8 @@ static constexpr std::array<const char*, 6> LOG_LEVEL_PREFIX = {
   "[DEBUG]"
 };
 #ifdef _GNU
-static constexpr std::size_t COLOR_CODE_MAX_LEN = 9;
-static constexpr std::size_t COLOR_RESET_LEN = 4;
+static constexpr uint16_t COLOR_CODE_MAX_LEN = 9;
+static constexpr uint16_t COLOR_RESET_LEN = 4;
 static constexpr char COLOR_RESET[] = "\033[0m";
 #endif
 // ---------------------------------------------
@@ -165,7 +165,7 @@ ColorIndex fg_color, bool fg_bold = true) {
     - Format: "\033[0;<fg_boldness><fg_color>m".
   */
   ColorTextType color_code = COLOR_TEXT_TYPE_INIT;
-  std::size_t index = 0;
+  uint8_t index = 0;
 
   // Append prefix
   color_code[index++] = '\033';
@@ -210,7 +210,7 @@ bool fg_bold = true, bool bg_bold = false) {
     - Format: "\033[<fg_boldness><fg_color>;<bg_boldness><bg_color>m".
   */
   ColorTextType color_code = COLOR_TEXT_TYPE_INIT;
-  std::size_t index = 0;
+  uint8_t index = 0;
 
   // Append prefix
   color_code[index++] = '\033';
