@@ -211,7 +211,7 @@ const std::initializer_list<ColorTextType>& color_list) {
   }
 
   FILE* log_file = nullptr;
-  std::array<char, 64> prefix_buffer = {'\0'};
+  std::array<char, 40> prefix_buffer = {'\0'};
   char* buffer_ptr = prefix_buffer.data();
 
   // Open log file if required.
