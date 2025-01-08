@@ -113,8 +113,7 @@ bool bg_bold) {
     return false;
   }
 
-  log_level_colors[level] =
-    gen_color_code(fg_color, bg_color, fg_bold, bg_bold);
+  log_level_colors[level] = color_code(fg_color, bg_color, fg_bold, bg_bold);
 
   return true;
 }

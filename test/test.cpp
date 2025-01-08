@@ -87,7 +87,7 @@ class LLoggerTest : public testing::Test {
 
 // ---------------------------------------------
 
-TEST_F(LLoggerTest, gen_color_code) {
+TEST_F(LLoggerTest, color_code) {
 #ifdef _GNU
   // Test color generation
   ColorTextType test_color = {'\0'};
@@ -107,7 +107,7 @@ TEST_F(LLoggerTest, gen_color_code) {
         c_bg);
 
       generated_color =
-        gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, false, false);
+        color_code((ColorIndex)c_fg, (ColorIndex)c_bg, false, false);
 
       printf("%sTEST_COLOR_FG(N)_BG(N)%s\t%sGEN_COLOR_FG(N)_BG(N)%s\n",
         test_color.data(),
@@ -124,7 +124,7 @@ TEST_F(LLoggerTest, gen_color_code) {
         c_bg);
 
       generated_color =
-        gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, false, true);
+        color_code((ColorIndex)c_fg, (ColorIndex)c_bg, false, true);
 
       printf("%sTEST_COLOR_FG(N)_BG(B)%s\t%sGEN_COLOR_FG(N)_BG(B)%s\n",
         test_color.data(),
@@ -141,7 +141,7 @@ TEST_F(LLoggerTest, gen_color_code) {
         c_bg);
 
       generated_color =
-        gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, true, false);
+        color_code((ColorIndex)c_fg, (ColorIndex)c_bg, true, false);
 
       printf("%sTEST_COLOR_FG(B)_BG(N)%s\t%sGEN_COLOR_FG(B)_BG(N)%s\n",
         test_color.data(),
@@ -158,7 +158,7 @@ TEST_F(LLoggerTest, gen_color_code) {
         c_bg);
 
       generated_color =
-        gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, true, true);
+        color_code((ColorIndex)c_fg, (ColorIndex)c_bg, true, true);
 
       printf("%sTEST_COLOR_FG(B)_BG(B)%s\t%sGEN_COLOR_FG(B)_BG(B)%s\n",
         test_color.data(),
@@ -185,7 +185,7 @@ TEST_F(LLoggerTest, gen_color_code) {
       // Foreground Normal, Background Normal
       test_color = (c_bg << 4) | 0x0000 | c_fg | 0x0000;
       generated_color =
-        gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, false, false);
+        color_code((ColorIndex)c_fg, (ColorIndex)c_bg, false, false);
 
       SetConsoleTextAttribute(ConsoleHandle, test_color);
       printf("TEST_COLOR_FG(N)_BG(N)\t");
@@ -198,7 +198,7 @@ TEST_F(LLoggerTest, gen_color_code) {
       // Foreground Normal, Background Bold
       test_color = (c_bg << 4) | test_bg_bold | c_fg | 0x0000;
       generated_color =
-        gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, false, true);
+        color_code((ColorIndex)c_fg, (ColorIndex)c_bg, false, true);
 
       SetConsoleTextAttribute(ConsoleHandle, test_color);
       printf("TEST_COLOR_FG(N)_BG(B)\t");
@@ -211,7 +211,7 @@ TEST_F(LLoggerTest, gen_color_code) {
       // Foreground Bold, Background Normal
       test_color = (c_bg << 4) | 0x0000 | c_fg | test_fg_bold;
       generated_color =
-        gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, true, false);
+        color_code((ColorIndex)c_fg, (ColorIndex)c_bg, true, false);
 
       SetConsoleTextAttribute(ConsoleHandle, test_color);
       printf("TEST_COLOR_FG(B)_BG(N)\t");
@@ -224,7 +224,7 @@ TEST_F(LLoggerTest, gen_color_code) {
       // Foreground Bold, Background Bold
       test_color = (c_bg << 4) | test_bg_bold | c_fg | test_fg_bold;
       generated_color =
-        gen_color_code((ColorIndex)c_fg, (ColorIndex)c_bg, true, true);
+        color_code((ColorIndex)c_fg, (ColorIndex)c_bg, true, true);
 
       SetConsoleTextAttribute(ConsoleHandle, test_color);
       printf("TEST_COLOR_FG(B)_BG(B)\t");
@@ -281,7 +281,7 @@ TEST_F(LLoggerTest, get_set_log_level_color) {
 
   // Normal inputs.
   ColorTextType test_color =
-    gen_color_code(ColorIndex::MAGENTA, ColorIndex::WHITE, true, false);
+    color_code(ColorIndex::MAGENTA, ColorIndex::WHITE, true, false);
 
   for (uint8_t l = 0; l <= LogLevel::LOG_DEBUG; l++) {
     EXPECT_TRUE(
@@ -616,11 +616,11 @@ TEST_F(LLoggerTest, log_line_input_handling) {
 
 TEST_F(LLoggerTest, log_line_colors_console) {
   constexpr std::array<ColorTextType, 6> test_multi_colors = {
-    gen_color_code(ColorIndex::WHITE, ColorIndex::RED, true, true),  // FATAL
-    gen_color_code(ColorIndex::RED),  // ERROR
-    gen_color_code(ColorIndex::YELLOW),  // WARN
-    gen_color_code(ColorIndex::CYAN),  // INFO
-    gen_color_code(ColorIndex::GREEN)  // DEBUG
+    color_code(ColorIndex::WHITE, ColorIndex::RED, true, true),  // FATAL
+    color_code(ColorIndex::RED),  // ERROR
+    color_code(ColorIndex::YELLOW),  // WARN
+    color_code(ColorIndex::CYAN),  // INFO
+    color_code(ColorIndex::GREEN)  // DEBUG
   };
 
   // TODO(Jashen): write tests for multi-color.
@@ -628,9 +628,9 @@ TEST_F(LLoggerTest, log_line_colors_console) {
 
 TEST_F(LLoggerTest, log_line_colors_input_handling) {
   constexpr std::array<ColorTextType, 3> test_multi_colors = {
-    gen_color_code(ColorIndex::RED),
-    gen_color_code(ColorIndex::GREEN),
-    gen_color_code(ColorIndex::BLUE)
+    color_code(ColorIndex::RED),
+    color_code(ColorIndex::GREEN),
+    color_code(ColorIndex::BLUE)
   };
 
   // LogLevel::LOG_OFF.

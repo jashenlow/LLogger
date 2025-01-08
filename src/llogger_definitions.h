@@ -153,7 +153,7 @@ using ColorTextType = uint16_t;
 #define COLOR_TEXT_TYPE_INIT (uint16_t)0
 #endif
 
-constexpr ColorTextType gen_color_code(
+constexpr ColorTextType color_code(
 ColorIndex fg_color, bool fg_bold = true) {
 #ifdef _GNU
   /*
@@ -195,7 +195,7 @@ ColorIndex fg_color, bool fg_bold = true) {
 #endif
 }
 
-constexpr ColorTextType gen_color_code(
+constexpr ColorTextType color_code(
 ColorIndex fg_color, ColorIndex bg_color,
 bool fg_bold = true, bool bg_bold = false) {
 #ifdef _GNU
@@ -256,11 +256,11 @@ bool fg_bold = true, bool bg_bold = false) {
 // Default color codes---------------------------------------------
 static constexpr std::array<ColorTextType, 6> DEFAULT_COLORS = {
   COLOR_TEXT_TYPE_INIT,  // OFF
-  gen_color_code(ColorIndex::WHITE, ColorIndex::RED, true, true),  // FATAL
-  gen_color_code(ColorIndex::RED),  // ERROR
-  gen_color_code(ColorIndex::YELLOW),  // WARN
-  gen_color_code(ColorIndex::CYAN),  // INFO
-  gen_color_code(ColorIndex::GREEN)  // DEBUG
+  color_code(ColorIndex::WHITE, ColorIndex::RED, true, true),  // FATAL
+  color_code(ColorIndex::RED),  // ERROR
+  color_code(ColorIndex::YELLOW),  // WARN
+  color_code(ColorIndex::CYAN),  // INFO
+  color_code(ColorIndex::GREEN)  // DEBUG
 };
 // ---------------------------------------------
 }  // namespace llogger
